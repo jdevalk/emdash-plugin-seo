@@ -1,0 +1,28 @@
+{
+  "name": "@jdevalk/emdash-plugin-seo",
+  "version": "1.0.0",
+  "description": "SEO plugin for EmDash CMS — meta tags, Open Graph, canonical URLs, robots directives, and JSON-LD schema markup",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "keywords": [
+    "emdash",
+    "seo",
+    "schema",
+    "json-ld",
+    "open-graph",
+    "meta-tags",
+    "canonical",
+    "robots"
+  ],
+  "author": "Joost de Valk",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jdevalk/emdash-plugin-seo"
+  },
+  "peerDependencies": {
+    "emdash": ">=0.1.0"
+  }
+}
