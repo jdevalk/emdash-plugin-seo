@@ -27,7 +27,11 @@ export function buildWebSite(
         "@type": "EntryPoint",
         urlTemplate: `${baseUrl}/search?q={search_term_string}`,
       },
-      "query-input": "required name=search_term_string",
+      "query-input": {
+        "@type": "PropertyValueSpecification",
+        valueRequired: "http://schema.org/True",
+        valueName: "search_term_string",
+      },
     },
   };
 
