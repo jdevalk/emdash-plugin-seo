@@ -1,5 +1,9 @@
 # EmDash SEO Plugin
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178c6.svg)](https://www.typescriptlang.org/)
+[![EmDash Plugin](https://img.shields.io/badge/EmDash-plugin-orange.svg)](https://github.com/emdash-cms/emdash)
+
 An SEO plugin for [EmDash CMS](https://github.com/emdash-cms/emdash) that generates meta tags, Open Graph, Twitter Cards, canonical URLs, robots directives, and JSON-LD schema markup via the `page:metadata` hook.
 
 ## Features
@@ -59,6 +63,12 @@ Then configure your site identity and social profiles in the EmDash admin under 
 
 Requires EmDash with support for running `page:metadata` hooks on public pages for anonymous visitors. See [emdash-cms/emdash#166](https://github.com/emdash-cms/emdash/issues/166) and [PR #169](https://github.com/emdash-cms/emdash/pull/169).
 
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](https://github.com/jdevalk/.github/blob/main/CONTRIBUTING.md) for guidelines.
+
+If you find a security vulnerability, please follow the [security policy](SECURITY.md) instead of opening a public issue.
+
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE) for details.
