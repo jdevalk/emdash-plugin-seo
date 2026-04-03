@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm install emdash typescript @types/react
+      - run: >
+          npx tsc --noEmit
+          --strict
+          --moduleResolution bundler
+          --module esnext
+          --target esnext
+          --jsx react-jsx
+          --skipLibCheck
+          $(find src -name '*.ts' -o -name '*.tsx')
