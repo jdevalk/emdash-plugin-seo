@@ -19,6 +19,7 @@ export async function metadataHandler(
   const settings = await loadSettings(ctx.kv);
   const siteUrl = ctx.site.url;
   const siteName = page.siteName || ctx.site.name;
+  const locale = page.locale || ctx.site.locale || "en";
 
   const contributions: PageMetadataContribution[] = [];
 
@@ -46,12 +47,12 @@ export async function metadataHandler(
   }
 
   // 6. Open Graph + Twitter
-  const ogContributions = generateOpengraph(page, settings, ogTitle, description, canonical);
+  const ogContributions = generateOpengraph(page, settings, ogTitle, description, canonical, locale);
   contributions.push(...ogContributions);
 
   // 7. JSON-LD Schema graph (replaces base "primary" JSON-LD)
   const schema = buildSchemaGraph(
-    page, settings, siteUrl, siteName, canonical, ogTitle, description,
+    page, settings, siteUrl, siteName, canonical, ogTitle, description, locale,
   );
   if (schema) {
     contributions.push({ kind: "jsonld", id: "primary", graph: schema });

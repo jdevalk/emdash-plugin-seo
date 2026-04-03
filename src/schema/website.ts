@@ -10,6 +10,7 @@ export function buildWebSite(
   siteUrl: string,
   siteName: string,
   siteDescription: string | null,
+  locale: string,
 ): Record<string, unknown> {
   const baseUrl = siteUrl.replace(/\/$/, "");
 
@@ -19,7 +20,7 @@ export function buildWebSite(
     url: `${baseUrl}/`,
     name: siteName,
     publisher: { "@id": getSiteEntityId(settings, siteUrl, siteName) },
-    inLanguage: "en-US",
+    inLanguage: locale,
     potentialAction: {
       "@type": "SearchAction",
       target: {

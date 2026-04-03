@@ -25,6 +25,7 @@ export function buildWebPage(
   canonical: string | null,
   ogTitle: string,
   description: string | null,
+  locale: string,
 ): Record<string, unknown> {
   const baseUrl = siteUrl.replace(/\/$/, "");
   const pageUrl = canonical || page.url;
@@ -35,7 +36,7 @@ export function buildWebPage(
     url: pageUrl,
     name: ogTitle,
     isPartOf: { "@id": `${baseUrl}/#website` },
-    inLanguage: "en-US",
+    inLanguage: locale,
   };
 
   if (description) {

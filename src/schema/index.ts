@@ -18,6 +18,7 @@ export function buildSchemaGraph(
   canonical: string | null,
   ogTitle: string,
   description: string | null,
+  locale: string,
 ): Record<string, unknown> | null {
   // No schema for 404 pages
   if (page.path === "/404") return null;
@@ -25,20 +26,20 @@ export function buildSchemaGraph(
   const graph: Record<string, unknown>[] = [];
 
   // 1. Site entity (Organization or Person) - always present
-  graph.push(buildSiteEntity(settings, siteUrl, siteName));
+  graph.push(buildSiteEntity(settings, siteUrl, siteName, locale));
 
   // 2. WebSite - always present
   graph.push(
-    buildWebSite(settings, siteUrl, siteName, settings.defaultDescription || null),
+    buildWebSite(settings, siteUrl, siteName, settings.defaultDescription || null, locale),
   );
 
   // 3. WebPage - always present
-  graph.push(buildWebPage(page, siteUrl, canonical, ogTitle, description));
+  graph.push(buildWebPage(page, siteUrl, canonical, ogTitle, description, locale));
 
   // 4. Article + Author Person - for content pages with article meta
   if (page.kind === "content" && page.articleMeta?.publishedTime) {
     const article = buildArticle(
-      page, settings, siteUrl, siteName, canonical, ogTitle, description,
+      page, settings, siteUrl, siteName, canonical, ogTitle, description, locale,
     );
     if (article) graph.push(article);
 

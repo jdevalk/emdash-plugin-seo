@@ -5,12 +5,27 @@ import type { SeoSettings } from "./settings.js";
  * Generate Open Graph and Twitter Card meta contributions.
  * og:type is "article" for all content types (posts, pages, videos).
  */
+/**
+ * Convert a language code to OG locale format (e.g. "en" -> "en_US", "en-GB" -> "en_GB").
+ */
+function toOgLocale(locale: string): string {
+  if (locale.includes("_")) return locale;
+  if (locale.includes("-")) return locale.replace("-", "_");
+  // Bare language code — append common region
+  const regionMap: Record<string, string> = {
+    en: "en_US", nl: "nl_NL", de: "de_DE", fr: "fr_FR", es: "es_ES",
+    it: "it_IT", pt: "pt_BR", ja: "ja_JP", zh: "zh_CN", ko: "ko_KR",
+  };
+  return regionMap[locale] || `${locale}_${locale.toUpperCase()}`;
+}
+
 export function generateOpengraph(
   page: PublicPageContext,
   settings: SeoSettings,
   ogTitle: string,
   description: string | null,
   canonical: string | null,
+  locale: string,
 ): PageMetadataContribution[] {
   const contributions: PageMetadataContribution[] = [];
   const path = page.path || "/";
@@ -20,7 +35,7 @@ export function generateOpengraph(
     if (page.siteName) {
       contributions.push({ kind: "property", property: "og:site_name", content: page.siteName });
     }
-    contributions.push({ kind: "property", property: "og:locale", content: "en_US" });
+    contributions.push({ kind: "property", property: "og:locale", content: toOgLocale(locale) });
     return contributions;
   }
 
@@ -58,7 +73,7 @@ export function generateOpengraph(
   }
 
   // og:locale
-  contributions.push({ kind: "property", property: "og:locale", content: "en_US" });
+  contributions.push({ kind: "property", property: "og:locale", content: toOgLocale(locale) });
 
   // Article meta
   if (isContent && page.articleMeta) {

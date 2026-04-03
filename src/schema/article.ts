@@ -16,6 +16,7 @@ export function buildArticle(
   canonical: string | null,
   ogTitle: string,
   description: string | null,
+  locale: string,
 ): Record<string, unknown> | null {
   const pageUrl = canonical || page.url;
 
@@ -34,7 +35,7 @@ export function buildArticle(
       name: settings.personName || siteName,
     },
     publisher: { "@id": getSiteEntityId(settings, siteUrl, siteName) },
-    inLanguage: "en-US",
+    inLanguage: locale,
   };
 
   if (page.articleMeta.modifiedTime) {

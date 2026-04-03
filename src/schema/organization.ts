@@ -8,6 +8,7 @@ export function buildSiteEntity(
   settings: SeoSettings,
   siteUrl: string,
   siteName: string,
+  locale: string,
 ): Record<string, unknown> {
   const baseUrl = siteUrl.replace(/\/$/, "");
 
@@ -25,7 +26,7 @@ export function buildSiteEntity(
         "@id": `${baseUrl}/#logo`,
         url: settings.orgLogoUrl,
         contentUrl: settings.orgLogoUrl,
-        inLanguage: "en-US",
+        inLanguage: locale,
       };
       node.image = { "@id": `${baseUrl}/#logo` };
     }
@@ -60,7 +61,7 @@ export function buildSiteEntity(
       "@id": `${baseUrl}/#personlogo`,
       url: settings.personImageUrl,
       contentUrl: settings.personImageUrl,
-      inLanguage: "en-US",
+      inLanguage: locale,
       caption: name,
     };
   }
