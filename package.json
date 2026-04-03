@@ -26,6 +26,6 @@
     "src/"
   ],
   "peerDependencies": {
-    "emdash": ">=0.1.0"
+    "emdash": "*"
   }
 }
