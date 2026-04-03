@@ -1,5 +1,6 @@
 # EmDash SEO Plugin
 
+[![CI](https://github.com/jdevalk/emdash-plugin-seo/actions/workflows/ci.yml/badge.svg)](https://github.com/jdevalk/emdash-plugin-seo/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178c6.svg)](https://www.typescriptlang.org/)
 [![EmDash Plugin](https://img.shields.io/badge/EmDash-plugin-orange.svg)](https://github.com/emdash-cms/emdash)
