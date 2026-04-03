@@ -1,6 +1,5 @@
 import { apiFetch as baseFetch, parseApiResponse } from "emdash/plugin-utils";
 import * as React from "react";
-import type { PluginAdminExports } from "emdash";
 
 const API = "/_emdash/api/plugins/seo";
 
@@ -156,12 +155,6 @@ function SettingsPage() {
     </div>
   );
 }
-
-const adminExports: PluginAdminExports = {
-  pages: {
-    "/": SettingsPage,
-  },
-};
 
 export const pages = {
   "/settings": SettingsPage,
