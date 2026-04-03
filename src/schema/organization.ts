@@ -41,7 +41,7 @@ export function buildSiteEntity(
   // Person
   const name = settings.personName || siteName;
   const node: Record<string, unknown> = {
-    "@type": ["Person", "Organization"],
+    "@type": "Person",
     "@id": `${baseUrl}/#/schema/person/${hashId(name)}`,
     name,
     url: baseUrl,
