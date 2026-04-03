@@ -18,3 +18,5 @@
 .claude/ export-ignore
 .github/ export-ignore
 .gitattributes export-ignore
+tsconfig.json export-ignore
+eslint.config.js export-ignore

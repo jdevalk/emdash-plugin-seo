@@ -1,19 +1,19 @@
-name: CI
+name: Security
 
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1'
 
 jobs:
-  typecheck:
-    name: Type Check
+  audit:
+    name: npm Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - run: npm install emdash typescript @types/react
-      - run: npx tsc --noEmit
+      - run: npm audit --audit-level=high
