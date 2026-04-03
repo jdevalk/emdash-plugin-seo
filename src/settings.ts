@@ -173,4 +173,4 @@ export const settingsSchema = {
     label: "Wikipedia URL",
     description: "Full article URL",
   },
-} as const;
+};

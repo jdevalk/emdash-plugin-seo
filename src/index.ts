@@ -1,5 +1,5 @@
 import { definePlugin } from "emdash";
-import type { PluginDescriptor } from "emdash";
+import type { PluginDescriptor, RouteContext } from "emdash";
 import { metadataHandler } from "./metadata.js";
 import { settingsSchema } from "./settings.js";
 
@@ -32,7 +32,7 @@ export function createPlugin() {
 
     routes: {
       "settings": {
-        handler: async (ctx) => {
+        handler: async (ctx: RouteContext) => {
           const entries = await ctx.kv.list("settings:");
           const settings: Record<string, string> = {};
           for (const { key, value } of entries) {
@@ -43,7 +43,7 @@ export function createPlugin() {
         },
       },
       "settings/save": {
-        handler: async (ctx) => {
+        handler: async (ctx: RouteContext) => {
           const { settings } = ctx.input as { settings: Record<string, string> };
           for (const [key, value] of Object.entries(settings)) {
             await ctx.kv.set(`settings:${key}`, value);
