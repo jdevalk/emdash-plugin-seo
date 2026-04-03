@@ -16,4 +16,5 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+      - run: npm i --package-lock-only
       - run: npm audit --audit-level=high
