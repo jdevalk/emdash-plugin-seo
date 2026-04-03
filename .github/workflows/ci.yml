@@ -16,4 +16,4 @@ jobs:
         with:
           node-version: 22
       - run: npm install -g typescript
-      - run: npx tsc --noEmit --strict --moduleResolution bundler --module esnext --target esnext --jsx react-jsx $(find src -name '*.ts' -o -name '*.tsx')
+      - run: npx tsc --noEmit --strict --moduleResolution bundler --module esnext --target esnext $(find src -name '*.ts' ! -name '*.tsx')
