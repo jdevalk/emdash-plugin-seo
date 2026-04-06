@@ -1,17 +1,16 @@
 import { definePlugin } from "emdash";
 import type { PluginDescriptor, RouteContext } from "emdash";
 import { metadataHandler } from "./metadata.js";
-import { settingsSchema } from "./settings.js";
 
 export function seoPlugin(): PluginDescriptor {
   return {
     id: "seo",
-    version: "0.1.1",
+    version: "0.1.2",
     format: "native",
     entrypoint: new URL("./index.ts", import.meta.url).pathname,
     adminEntry: new URL("./admin.tsx", import.meta.url).pathname,
     adminPages: [
-      { path: "/settings", label: "Settings", icon: "settings" },
+      { path: "/settings", label: "SEO", icon: "settings" },
     ],
     options: {},
   };
@@ -20,8 +19,8 @@ export function seoPlugin(): PluginDescriptor {
 export function createPlugin() {
   return definePlugin({
     id: "seo",
-    version: "0.1.1",
-    capabilities: ["read:content"],
+    version: "0.1.2",
+    capabilities: ["read:content", "page:inject"],
 
     hooks: {
       "page:metadata": {
@@ -54,9 +53,8 @@ export function createPlugin() {
     },
 
     admin: {
-      settingsSchema,
       pages: [
-        { path: "/settings", label: "Settings", icon: "settings" },
+        { path: "/settings", label: "SEO", icon: "settings" },
       ],
     },
   });
