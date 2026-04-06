@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/jdevalk/emdash-plugin-seo/actions/workflows/ci.yml/badge.svg)](https://github.com/jdevalk/emdash-plugin-seo/actions/workflows/ci.yml)
 [![Lint](https://github.com/jdevalk/emdash-plugin-seo/actions/workflows/lint.yml/badge.svg)](https://github.com/jdevalk/emdash-plugin-seo/actions/workflows/lint.yml)
+[![npm](https://img.shields.io/npm/v/@jdevalk/emdash-plugin-seo)](https://www.npmjs.com/package/@jdevalk/emdash-plugin-seo)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178c6.svg)](https://www.typescriptlang.org/)
 [![EmDash Plugin](https://img.shields.io/badge/EmDash-plugin-orange.svg)](https://github.com/emdash-cms/emdash)
