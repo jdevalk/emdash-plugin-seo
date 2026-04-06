@@ -6,7 +6,7 @@ import { settingsSchema } from "./settings.js";
 export function seoPlugin(): PluginDescriptor {
   return {
     id: "seo",
-    version: "1.0.0",
+    version: "0.1.1",
     format: "native",
     entrypoint: new URL("./index.ts", import.meta.url).pathname,
     adminEntry: new URL("./admin.tsx", import.meta.url).pathname,
@@ -20,7 +20,7 @@ export function seoPlugin(): PluginDescriptor {
 export function createPlugin() {
   return definePlugin({
     id: "seo",
-    version: "1.0.0",
+    version: "0.1.1",
     capabilities: ["read:content"],
 
     hooks: {
