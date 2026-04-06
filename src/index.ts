@@ -5,7 +5,7 @@ import { metadataHandler } from "./metadata.js";
 export function seoPlugin(): PluginDescriptor {
   return {
     id: "seo",
-    version: "0.1.2",
+    version: "0.1.3",
     format: "native",
     entrypoint: new URL("./index.ts", import.meta.url).pathname,
     adminEntry: new URL("./admin.tsx", import.meta.url).pathname,
@@ -19,7 +19,7 @@ export function seoPlugin(): PluginDescriptor {
 export function createPlugin() {
   return definePlugin({
     id: "seo",
-    version: "0.1.2",
+    version: "0.1.3",
     capabilities: ["read:content", "page:inject"],
 
     hooks: {

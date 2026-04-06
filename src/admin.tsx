@@ -126,6 +126,7 @@ function SettingsPage() {
 
   return (
     <div style={{ maxWidth: 640, padding: "1.5rem 0" }}>
+      <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1.5rem" }}>SEO Settings</h1>
       {sections.map((section) => (
         <div key={section.id} style={{ marginBottom: "2rem" }}>
           <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.75rem", borderBottom: "1px solid #e5e7eb", paddingBottom: "0.5rem" }}>
