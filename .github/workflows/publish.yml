@@ -23,4 +23,20 @@ jobs:
           # Leaving it off means no `.npmrc` is created, npm uses the
           # default registry (npmjs.org), and trusted publishing can
           # authenticate via the GitHub Actions OIDC token.
+      # Node 22 ships with npm 10.x, which doesn't support OIDC trusted
+      # publishing. Upgrade to 11.5.1+ so `npm publish` can complete the
+      # OIDC token exchange with the npm registry. Without this, the
+      # publish fails with ENEEDAUTH even though OIDC env is available.
+      #
+      # Install into a separate global prefix so npm isn't trying to
+      # upgrade itself in place — that hits a known bug where npm
+      # removes its own dependencies mid-install and then can't finish
+      # (MODULE_NOT_FOUND: promise-retry).
+      - name: Install npm 11.x into a separate prefix
+        run: |
+          mkdir -p "$HOME/.npm-global"
+          npm config set prefix "$HOME/.npm-global"
+          echo "$HOME/.npm-global/bin" >> "$GITHUB_PATH"
+          npm install -g npm@latest
+          "$HOME/.npm-global/bin/npm" --version
       - run: npm publish --provenance --access public
