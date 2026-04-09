@@ -15,5 +15,6 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - run: npm install eslint @eslint/js typescript-eslint typescript emdash @types/react
+      - run: npm install
+      - run: npm install --no-save eslint @eslint/js typescript-eslint @types/react
       - run: npx eslint src/

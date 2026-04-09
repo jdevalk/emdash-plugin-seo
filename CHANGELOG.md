@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-04-09
+
+### Added
+
+- **hreflang alternates for multilingual sites.** When EmDash's Astro `i18n` config defines multiple locales and content entries are linked via `translation_group`, the plugin now emits one `<link rel="alternate" hreflang="…" href="…">` per published sibling plus an automatically-resolved `x-default` entry. Self-referential entries are included. URLs are built from each collection's `urlPattern` + the locale's Astro prefix rules, so every hreflang target matches the canonical URL of that page.
+- **Region-tag hreflang output.** BCP 47 tags are normalized on emission: `fr-ca` becomes `fr-CA`, `zh-hant-hk` becomes `zh-Hant-HK`. Sites that need `fr-CA` vs `fr-FR` as separate translations should use the code as the locale path (`locales: ["en", "fr-ca", "fr-fr"]` in `astro.config.mjs`), since EmDash core currently drops Astro's object-form `{ path, codes }` shape.
+- **`buildPageUrl` helper (`src/urls.ts`).** Shared path-construction logic honoring `urlPattern`, `prefixDefaultLocale`, and the plugin's canonical-normalization rules (lowercase, collapsed slashes, trailing slash).
+
+### Changed
+
+- **Runtime dependency on [`@jdevalk/astro-seo-graph`](https://www.npmjs.com/package/@jdevalk/astro-seo-graph).** The hreflang work reuses `buildAlternateLinks` from `astro-seo-graph` for normalization, dedup, and `x-default` resolution. The helper is pure TypeScript, so this does not add any Astro runtime overhead — Astro is a peer dep satisfied transitively through EmDash.
+
+### Notes
+
+Zero cost on single-locale sites: gated on `isI18nEnabled()` before any database call. When i18n is disabled, the hreflang path is a single boolean check and an early return.
+
 ## [0.3.0] - 2026-04-09
 
 ### Added

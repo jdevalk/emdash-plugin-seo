@@ -7,13 +7,14 @@ on:
     branches: [main]
 
 jobs:
-  typecheck:
-    name: Type Check
+  test:
+    name: Type check and test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - run: npm install emdash typescript @types/react
-      - run: npx tsc --noEmit
+      - run: npm install
+      - run: npm run typecheck
+      - run: npm test

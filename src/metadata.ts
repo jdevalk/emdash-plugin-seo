@@ -5,6 +5,7 @@ import { generateDescription } from "./descriptions.js";
 import { generateRobots } from "./robots.js";
 import { generateCanonical } from "./canonical.js";
 import { generateOpengraph } from "./opengraph.js";
+import { generateHreflang } from "./hreflang.js";
 import { buildSchemaGraph } from "./schema/index.js";
 
 /**
@@ -45,6 +46,12 @@ export async function metadataHandler(
   if (canonical) {
     contributions.push({ kind: "link", rel: "canonical", href: canonical });
   }
+
+  // 5b. hreflang alternates (multilingual content sites only)
+  // Short-circuits internally when i18n is disabled — zero cost on
+  // single-locale sites.
+  const hreflangContributions = await generateHreflang(page, ctx, siteUrl);
+  contributions.push(...hreflangContributions);
 
   // 6. Open Graph + Twitter
   const ogContributions = generateOpengraph(page, settings, ogTitle, description, canonical, locale);

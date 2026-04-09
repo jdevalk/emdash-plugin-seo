@@ -23,6 +23,7 @@ An SEO plugin for [EmDash CMS](https://github.com/emdash-cms/emdash) that genera
   - `Article` with author `Person` (for content pages)
   - `BreadcrumbList` with a back-reference from `WebPage`
 - **Breadcrumbs** — derived from the URL path by default, with segment label overrides (`/blog/` → "Blog") and per-`pageType` rule overrides both editable in the admin UI. `@id` scheme matches [joost.blog](https://joost.blog) via `@jdevalk/seo-graph-core`
+- **hreflang alternates** — for multilingual EmDash sites (Astro `i18n` + `translation_group`), one `<link rel="alternate" hreflang="…">` per published sibling plus an automatic `x-default`, with BCP 47 tag normalization (`fr-ca` → `fr-CA`). Zero cost on single-locale sites
 - **Admin settings UI** — auto-generated from `settingsSchema` for configuring Person/Organization identity, social profiles, title separator, and default description
 
 ## Installation
@@ -65,6 +66,46 @@ Then configure your site identity and social profiles in the EmDash admin under 
 | Social URLs | Twitter/X, Facebook, LinkedIn, Instagram, YouTube, GitHub, Bluesky, Mastodon, Wikipedia |
 | Breadcrumb segment labels | `segment → display label` overrides (e.g. `blog → Blog`) |
 | Breadcrumb page type rules | Per-`pageType` ordered crumb lists, JSON-edited, for themes that need full control over trail shape |
+
+## Multilingual sites (hreflang)
+
+When your site has more than one locale configured in Astro's `i18n` block and content entries are linked via `translation_group`, the plugin automatically emits hreflang annotations for each content page. No configuration required — it activates as soon as `isI18nEnabled()` returns true.
+
+```js
+// astro.config.mjs
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr", "nl"],
+    routing: { prefixDefaultLocale: false },
+  },
+  integrations: [emdash({ plugins: [seoPlugin()] })],
+});
+```
+
+A 3-locale post at `/hello/`, with published French (`/fr/bonjour/`) and Dutch (`/nl/hallo/`) translations in the same `translation_group`, renders:
+
+```html
+<link rel="alternate" hreflang="en"        href="https://example.com/hello/">
+<link rel="alternate" hreflang="fr"        href="https://example.com/fr/bonjour/">
+<link rel="alternate" hreflang="nl"        href="https://example.com/nl/hallo/">
+<link rel="alternate" hreflang="x-default" href="https://example.com/hello/">
+```
+
+Only published siblings are included. Drafts, scheduled entries, and siblings whose locale is no longer in your Astro config are dropped. If the page has fewer than two published locales, no hreflang tags are emitted (a single-locale page has no meaningful alternates).
+
+### Region-specific locales (`fr-CA` vs `fr-FR`)
+
+If you need region-specific hreflang, use the BCP 47 code as the locale path directly:
+
+```js
+i18n: {
+  defaultLocale: "en",
+  locales: ["en", "fr-ca", "fr-fr"],
+}
+```
+
+URLs become `/fr-ca/…` and `/fr-fr/…`, and the emitted `hreflang` attributes are normalized to conventional casing (`fr-CA`, `fr-FR`). EmDash core currently drops Astro's object-form `{ path, codes }` shape at the integration boundary, so the code-as-path workaround is the supported path for region tags in this plugin version.
 
 ## Requirements
 
