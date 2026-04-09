@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-04-09
+
+### Changed
+
+- Bump `@jdevalk/seo-graph-core` range from `^0.1.0` to `^0.2.0` to pick up the new core release. `seo-graph-core@0.2.0` adds a generic type parameter to `buildOrganization` (flows schema-dts subtype autocomplete into the `extra` field) and makes `WebPageInput.breadcrumb` optional. Both improvements are additive; this plugin doesn't currently call those piece builders directly, but the bump keeps the installed `seo-graph-core` version in sync with what `@jdevalk/astro-seo-graph@^0.2.1` pulls in, avoiding duplicate `seo-graph-core` copies in `node_modules`.
+
 ## [0.4.0] - 2026-04-09
 
 ### Added
