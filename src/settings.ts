@@ -10,7 +10,26 @@ export interface SeoSettings {
   orgName: string;
   orgLogoUrl: string;
   socials: string[];
+  /**
+   * Segment → display label map used by breadcrumb path derivation.
+   * Keys are path segments (`"blog"`), not full paths.
+   */
+  breadcrumbLabels: Record<string, string>;
+  /**
+   * Per-`pageType` rule map that overrides path derivation.
+   * Each rule is an ordered list of crumbs; `{title}` in a label is
+   * replaced with `page.title`; an omitted `href` resolves to the
+   * current page URL (canonical).
+   */
+  breadcrumbRules: Record<string, BreadcrumbRule>;
 }
+
+export interface BreadcrumbRuleCrumb {
+  label: string;
+  href?: string;
+}
+
+export type BreadcrumbRule = BreadcrumbRuleCrumb[];
 
 const SOCIAL_KEYS = [
   "socialTwitter",
@@ -46,7 +65,27 @@ export function parseSettings(map: Map<string, string>): SeoSettings {
     orgName: map.get("orgName") || "",
     orgLogoUrl: map.get("orgLogoUrl") || "",
     socials,
+    breadcrumbLabels: parseJsonRecord<string>(map.get("breadcrumbLabels")),
+    breadcrumbRules: parseJsonRecord<BreadcrumbRule>(map.get("breadcrumbRules")),
   };
+}
+
+/**
+ * Parse a JSON-serialized record from KV. Returns an empty object on any
+ * parse failure — bad settings should degrade silently to "no override"
+ * rather than crash the page:metadata hook.
+ */
+function parseJsonRecord<V>(raw: string | undefined): Record<string, V> {
+  if (!raw) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as Record<string, V>;
+    }
+  } catch {
+    // fall through
+  }
+  return {};
 }
 
 /**

@@ -1,3 +1,4 @@
+import type { IdFactory } from "@jdevalk/seo-graph-core";
 import type { SeoSettings } from "../settings.js";
 import { getSiteEntityId } from "./organization.js";
 
@@ -11,15 +12,16 @@ export function buildWebSite(
   siteName: string,
   siteDescription: string | null,
   locale: string,
+  ids: IdFactory,
 ): Record<string, unknown> {
   const baseUrl = siteUrl.replace(/\/$/, "");
 
   const node: Record<string, unknown> = {
     "@type": "WebSite",
-    "@id": `${baseUrl}/#website`,
+    "@id": ids.website,
     url: `${baseUrl}/`,
     name: siteName,
-    publisher: { "@id": getSiteEntityId(settings, siteUrl, siteName) },
+    publisher: { "@id": getSiteEntityId(settings, ids) },
     inLanguage: locale,
     potentialAction: {
       "@type": "SearchAction",

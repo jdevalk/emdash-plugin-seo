@@ -1,24 +1,27 @@
+import type { IdFactory } from "@jdevalk/seo-graph-core";
 import type { SeoSettings } from "../settings.js";
 
 /**
- * Build the author Person schema node.
- * Required fields are @type, @id, name.
- * Names like "admin" should be rejected.
+ * Build the author Person schema node. Returned as a separate piece
+ * only when the site represents an Organization — for Person sites
+ * the site entity already covers this node.
+ *
+ * Required fields are @type, @id, name. Names like "admin" are
+ * rejected per schema.org best practice.
  */
 export function buildAuthorPerson(
   settings: SeoSettings,
-  siteUrl: string,
   siteName: string,
+  ids: IdFactory,
 ): Record<string, unknown> | null {
   const name = settings.personName || siteName;
 
   // Per spec: reject "admin" or similar invalid author names
   if (!name || name.toLowerCase() === "admin") return null;
 
-  const baseUrl = siteUrl.replace(/\/$/, "");
   const node: Record<string, unknown> = {
     "@type": "Person",
-    "@id": getAuthorPersonId(settings, siteUrl, siteName),
+    "@id": ids.person,
     name,
   };
 
@@ -33,7 +36,7 @@ export function buildAuthorPerson(
   if (settings.personImageUrl) {
     node.image = {
       "@type": "ImageObject",
-      "@id": `${baseUrl}/#authorlogo`,
+      "@id": ids.personImage,
       url: settings.personImageUrl,
       contentUrl: settings.personImageUrl,
       caption: name,
@@ -45,15 +48,4 @@ export function buildAuthorPerson(
   }
 
   return node;
-}
-
-export function getAuthorPersonId(
-  settings: SeoSettings,
-  siteUrl: string,
-  siteName: string,
-): string {
-  const baseUrl = siteUrl.replace(/\/$/, "");
-  const name = settings.personName || siteName;
-  const hash = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-  return `${baseUrl}/#/schema/person/${hash}`;
 }

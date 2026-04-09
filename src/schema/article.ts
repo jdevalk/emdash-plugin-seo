@@ -1,7 +1,7 @@
+import type { IdFactory } from "@jdevalk/seo-graph-core";
 import type { PublicPageContext } from "emdash";
 import type { SeoSettings } from "../settings.js";
 import { getSiteEntityId } from "./organization.js";
-import { getAuthorPersonId } from "./person.js";
 
 /**
  * Build the Article schema node.
@@ -11,30 +11,31 @@ import { getAuthorPersonId } from "./person.js";
 export function buildArticle(
   page: PublicPageContext,
   settings: SeoSettings,
-  siteUrl: string,
   siteName: string,
   canonical: string | null,
   ogTitle: string,
   description: string | null,
   locale: string,
+  ids: IdFactory,
 ): Record<string, unknown> | null {
   const pageUrl = canonical || page.url;
 
   // Required fields per spec - if missing, don't output
   if (!ogTitle || !page.articleMeta?.publishedTime) return null;
 
+  const webPageId = ids.webPage(pageUrl);
   const node: Record<string, unknown> = {
     "@type": "Article",
-    "@id": `${pageUrl}#article`,
+    "@id": ids.article(pageUrl),
     headline: ogTitle,
-    isPartOf: { "@id": `${pageUrl}#webpage` },
-    mainEntityOfPage: { "@id": `${pageUrl}#webpage` },
+    isPartOf: { "@id": webPageId },
+    mainEntityOfPage: { "@id": webPageId },
     datePublished: page.articleMeta.publishedTime,
     author: {
-      "@id": getAuthorPersonId(settings, siteUrl, siteName),
+      "@id": ids.person,
       name: settings.personName || siteName,
     },
-    publisher: { "@id": getSiteEntityId(settings, siteUrl, siteName) },
+    publisher: { "@id": getSiteEntityId(settings, ids) },
     inLanguage: locale,
   };
 

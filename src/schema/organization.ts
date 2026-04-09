@@ -1,3 +1,4 @@
+import type { IdFactory } from "@jdevalk/seo-graph-core";
 import type { SeoSettings } from "../settings.js";
 
 /**
@@ -9,13 +10,15 @@ export function buildSiteEntity(
   siteUrl: string,
   siteName: string,
   locale: string,
+  ids: IdFactory,
 ): Record<string, unknown> {
   const baseUrl = siteUrl.replace(/\/$/, "");
 
   if (settings.siteRepresents === "organization") {
+    const orgLogoId = `${baseUrl}/#/schema.org/ImageObject/logo`;
     const node: Record<string, unknown> = {
       "@type": "Organization",
-      "@id": `${baseUrl}/#organization`,
+      "@id": ids.organization(orgSlug(settings)),
       name: settings.orgName || siteName,
       url: baseUrl,
     };
@@ -23,12 +26,12 @@ export function buildSiteEntity(
     if (settings.orgLogoUrl) {
       node.logo = {
         "@type": "ImageObject",
-        "@id": `${baseUrl}/#logo`,
+        "@id": orgLogoId,
         url: settings.orgLogoUrl,
         contentUrl: settings.orgLogoUrl,
         inLanguage: locale,
       };
-      node.image = { "@id": `${baseUrl}/#logo` };
+      node.image = { "@id": orgLogoId };
     }
 
     if (settings.socials.length > 0) {
@@ -42,7 +45,7 @@ export function buildSiteEntity(
   const name = settings.personName || siteName;
   const node: Record<string, unknown> = {
     "@type": "Person",
-    "@id": `${baseUrl}/#/schema/person/${hashId(name)}`,
+    "@id": ids.person,
     name,
     url: baseUrl,
   };
@@ -58,7 +61,7 @@ export function buildSiteEntity(
   if (settings.personImageUrl) {
     node.image = {
       "@type": "ImageObject",
-      "@id": `${baseUrl}/#personlogo`,
+      "@id": ids.personImage,
       url: settings.personImageUrl,
       contentUrl: settings.personImageUrl,
       inLanguage: locale,
@@ -74,21 +77,24 @@ export function buildSiteEntity(
 }
 
 /**
- * Get the @id reference for the site entity.
+ * Get the @id reference for the site entity — either the site-wide
+ * Person or an Organization. Used by other pieces (Article, WebSite)
+ * that need to reference the publisher.
  */
-export function getSiteEntityId(
-  settings: SeoSettings,
-  siteUrl: string,
-  siteName: string,
-): string {
-  const baseUrl = siteUrl.replace(/\/$/, "");
+export function getSiteEntityId(settings: SeoSettings, ids: IdFactory): string {
   if (settings.siteRepresents === "organization") {
-    return `${baseUrl}/#organization`;
+    return ids.organization(orgSlug(settings));
   }
-  const name = settings.personName || siteName;
-  return `${baseUrl}/#/schema/person/${hashId(name)}`;
+  return ids.person;
 }
 
-function hashId(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+/**
+ * Slugify the organization name for use as the Organization @id slug.
+ * `makeIds` takes a slug so multi-org sites are possible; the plugin
+ * only models one, so this just slugifies the configured name (or
+ * falls back to `"site"` if unset).
+ */
+function orgSlug(settings: SeoSettings): string {
+  const name = settings.orgName || "site";
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "site";
 }

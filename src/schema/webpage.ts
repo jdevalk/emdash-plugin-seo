@@ -1,3 +1,4 @@
+import type { IdFactory } from "@jdevalk/seo-graph-core";
 import type { PublicPageContext } from "emdash";
 
 const COLLECTION_PAGE_PATHS = new Set(["/", "/posts", "/posts/", "/videos", "/videos/"]);
@@ -18,29 +19,37 @@ function getWebPageType(page: PublicPageContext): string {
 /**
  * Build the WebPage schema node.
  * Every page includes a WebPage node.
+ *
+ * When `hasBreadcrumbs` is true, a `breadcrumb` back-reference is
+ * added pointing at the BreadcrumbList entity. Callers are
+ * responsible for emitting the matching BreadcrumbList piece.
  */
 export function buildWebPage(
   page: PublicPageContext,
-  siteUrl: string,
   canonical: string | null,
   ogTitle: string,
   description: string | null,
   locale: string,
+  ids: IdFactory,
+  hasBreadcrumbs: boolean,
 ): Record<string, unknown> {
-  const baseUrl = siteUrl.replace(/\/$/, "");
   const pageUrl = canonical || page.url;
 
   const node: Record<string, unknown> = {
     "@type": getWebPageType(page),
-    "@id": `${pageUrl}#webpage`,
+    "@id": ids.webPage(pageUrl),
     url: pageUrl,
     name: ogTitle,
-    isPartOf: { "@id": `${baseUrl}/#website` },
+    isPartOf: { "@id": ids.website },
     inLanguage: locale,
   };
 
   if (description) {
     node.description = description;
+  }
+
+  if (hasBreadcrumbs) {
+    node.breadcrumb = { "@id": ids.breadcrumb(pageUrl) };
   }
 
   if (page.articleMeta?.publishedTime) {

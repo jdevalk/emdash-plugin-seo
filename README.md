@@ -21,6 +21,8 @@ An SEO plugin for [EmDash CMS](https://github.com/emdash-cms/emdash) that genera
   - `WebSite` with `SearchAction`
   - `WebPage` (`CollectionPage` for archives)
   - `Article` with author `Person` (for content pages)
+  - `BreadcrumbList` with a back-reference from `WebPage`
+- **Breadcrumbs** — derived from the URL path by default, with segment label overrides (`/blog/` → "Blog") and per-`pageType` rule overrides both editable in the admin UI. `@id` scheme matches [joost.blog](https://joost.blog) via `@jdevalk/seo-graph-core`
 - **Admin settings UI** — auto-generated from `settingsSchema` for configuring Person/Organization identity, social profiles, title separator, and default description
 
 ## Installation
@@ -61,6 +63,8 @@ Then configure your site identity and social profiles in the EmDash admin under 
 | Person name / bio / image / job title / URL | Person schema fields |
 | Organization name / logo URL | Organization schema fields |
 | Social URLs | Twitter/X, Facebook, LinkedIn, Instagram, YouTube, GitHub, Bluesky, Mastodon, Wikipedia |
+| Breadcrumb segment labels | `segment → display label` overrides (e.g. `blog → Blog`) |
+| Breadcrumb page type rules | Per-`pageType` ordered crumb lists, JSON-edited, for themes that need full control over trail shape |
 
 ## Requirements
 

@@ -50,6 +50,12 @@ const inputStyle: React.CSSProperties = {
   fontFamily: "inherit",
 };
 
+const buttonStyle: React.CSSProperties = {
+  padding: "0.375rem 0.75rem", borderRadius: 6, background: "#f3f4f6",
+  color: "#374151", border: "1px solid #d1d5db", cursor: "pointer",
+  fontSize: "0.75rem", fontFamily: "inherit",
+};
+
 function Field({ field, value, onChange }: { field: FieldDef; value: string; onChange: (v: string) => void }) {
   return (
     <div style={{ marginBottom: "1rem" }}>
@@ -72,6 +78,177 @@ function Field({ field, value, onChange }: { field: FieldDef; value: string; onC
         />
       ) : (
         <input type="text" value={value} onChange={(e) => onChange(e.target.value)} style={inputStyle} />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Editor for the breadcrumb segment → label map. Each row is a
+ * `(segment, label)` pair; "blog" → "Blog" fixes ugly auto-derived
+ * crumbs without requiring code changes to the theme.
+ *
+ * Serializes to JSON on every change; stored as the `breadcrumbLabels`
+ * setting value.
+ */
+function BreadcrumbLabelsEditor({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const parsed = React.useMemo<Array<{ segment: string; label: string }>>(() => {
+    if (!value) return [];
+    try {
+      const obj = JSON.parse(value) as unknown;
+      if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+        return Object.entries(obj as Record<string, unknown>).map(([segment, label]) => ({
+          segment,
+          label: String(label ?? ""),
+        }));
+      }
+    } catch {
+      // fall through
+    }
+    return [];
+  }, [value]);
+
+  const commit = (rows: Array<{ segment: string; label: string }>) => {
+    const obj: Record<string, string> = {};
+    for (const row of rows) {
+      const key = row.segment.trim();
+      if (key) obj[key] = row.label;
+    }
+    onChange(Object.keys(obj).length > 0 ? JSON.stringify(obj) : "");
+  };
+
+  const updateRow = (index: number, patch: Partial<{ segment: string; label: string }>) => {
+    const next = parsed.map((r, i) => (i === index ? { ...r, ...patch } : r));
+    commit(next);
+  };
+
+  const addRow = () => commit([...parsed, { segment: "", label: "" }]);
+  const removeRow = (index: number) => commit(parsed.filter((_, i) => i !== index));
+
+  return (
+    <div style={{ marginBottom: "1rem" }}>
+      <label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: "0.875rem" }}>
+        Segment labels
+      </label>
+      <div style={{ fontSize: "0.75rem", color: "#666", marginBottom: 8 }}>
+        Override the default title-cased segment name for breadcrumbs. Segments
+        are matched anywhere in the path — <code>blog</code> → <code>Blog</code>{" "}
+        relabels the <code>/blog/</code> crumb on every page under it.
+      </div>
+      {parsed.length === 0 && (
+        <div style={{ fontSize: "0.75rem", color: "#9ca3af", fontStyle: "italic", marginBottom: 8 }}>
+          No overrides — breadcrumbs will use cleaned-up segment names.
+        </div>
+      )}
+      {parsed.map((row, i) => (
+        <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+          <input
+            type="text"
+            placeholder="segment"
+            value={row.segment}
+            onChange={(e) => updateRow(i, { segment: e.target.value })}
+            style={{ ...inputStyle, flex: "1 1 40%" }}
+          />
+          <input
+            type="text"
+            placeholder="Display label"
+            value={row.label}
+            onChange={(e) => updateRow(i, { label: e.target.value })}
+            style={{ ...inputStyle, flex: "1 1 60%" }}
+          />
+          <button type="button" onClick={() => removeRow(i)} style={buttonStyle} aria-label="Remove">
+            ×
+          </button>
+        </div>
+      ))}
+      <button type="button" onClick={addRow} style={buttonStyle}>
+        + Add label
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Advanced editor for per-`pageType` breadcrumb rules. Raw JSON editor
+ * because the shape is nested (pageType → ordered array of crumbs)
+ * and a structured form would be heavy for a rarely-edited field.
+ *
+ * Validation is cosmetic (red border on parse error); the plugin's
+ * runtime `parseSettings` falls back to `{}` on malformed JSON, so
+ * bad input degrades to path derivation rather than crashing.
+ */
+function BreadcrumbRulesEditor({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [draft, setDraft] = React.useState(value);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  const handleChange = (next: string) => {
+    setDraft(next);
+    if (!next.trim()) {
+      setError(null);
+      onChange("");
+      return;
+    }
+    try {
+      JSON.parse(next);
+      setError(null);
+      onChange(next);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  return (
+    <div style={{ marginBottom: "1rem" }}>
+      <label style={{ display: "block", fontWeight: 500, marginBottom: 4, fontSize: "0.875rem" }}>
+        Page type rules (advanced)
+      </label>
+      <div style={{ fontSize: "0.75rem", color: "#666", marginBottom: 4 }}>
+        JSON map from <code>pageType</code> to an ordered list of crumbs.
+        Use <code>{"{title}"}</code> as a placeholder for the current page title,
+        and omit <code>href</code> on the last crumb to point it at the canonical URL.
+      </div>
+      <pre style={{ fontSize: "0.7rem", color: "#6b7280", background: "#f9fafb", padding: 8, borderRadius: 4, marginBottom: 6, overflowX: "auto" }}>
+{`{
+  "blogPost": [
+    { "label": "Home", "href": "/" },
+    { "label": "Blog", "href": "/blog/" },
+    { "label": "{title}" }
+  ]
+}`}
+      </pre>
+      <textarea
+        value={draft}
+        onChange={(e) => handleChange(e.target.value)}
+        rows={8}
+        style={{
+          ...inputStyle,
+          resize: "vertical",
+          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+          fontSize: "0.75rem",
+          borderColor: error ? "#dc2626" : "#d1d5db",
+        }}
+        placeholder="{}"
+      />
+      {error && (
+        <div style={{ fontSize: "0.7rem", color: "#dc2626", marginTop: 4 }}>
+          Invalid JSON: {error}
+        </div>
       )}
     </div>
   );
@@ -142,6 +319,21 @@ function SettingsPage() {
           ))}
         </div>
       ))}
+
+      <div style={{ marginBottom: "2rem" }}>
+        <h3 style={{ fontSize: "1rem", fontWeight: 600, marginBottom: "0.75rem", borderBottom: "1px solid #e5e7eb", paddingBottom: "0.5rem" }}>
+          Breadcrumbs
+        </h3>
+        <BreadcrumbLabelsEditor
+          value={settings.breadcrumbLabels || ""}
+          onChange={(v) => update("breadcrumbLabels", v)}
+        />
+        <BreadcrumbRulesEditor
+          value={settings.breadcrumbRules || ""}
+          onChange={(v) => update("breadcrumbRules", v)}
+        />
+      </div>
+
       <button
         onClick={handleSave}
         disabled={saving}
