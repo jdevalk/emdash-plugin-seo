@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-04-09
+
+### Changed
+
+- Bump `@jdevalk/seo-graph-core` range from `^0.2.0` to `^0.3.0` and `@jdevalk/astro-seo-graph` range from `^0.2.1` to `^0.2.4`. This dedupes `seo-graph-core` in consumer `node_modules` — `astro-seo-graph@0.2.4` pins `seo-graph-core@0.3.0` as a direct dep, and the plugin's previous `^0.2.0` range excluded 0.3.0 (pre-1.0 semver), so consumers ended up with two parallel copies of `seo-graph-core`. They now resolve to a single copy.
+- `seo-graph-core@0.3.0` ships three additive improvements this plugin doesn't currently exercise directly: no more `inLanguage: 'en-US'` default on piece builders, optional `WebPageInput.breadcrumb`, and a generic type parameter on `buildOrganization`. No behavioural change in this plugin's output.
+
 ## [0.4.1] - 2026-04-09
 
 ### Changed

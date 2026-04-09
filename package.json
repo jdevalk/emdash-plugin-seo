@@ -1,6 +1,6 @@
 {
   "name": "@jdevalk/emdash-plugin-seo",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "SEO plugin for EmDash CMS — meta tags, Open Graph, canonical URLs, robots directives, and JSON-LD schema markup",
   "type": "module",
   "exports": {
@@ -33,8 +33,8 @@
     "emdash": "*"
   },
   "dependencies": {
-    "@jdevalk/astro-seo-graph": "^0.2.1",
-    "@jdevalk/seo-graph-core": "^0.2.0"
+    "@jdevalk/astro-seo-graph": "^0.2.4",
+    "@jdevalk/seo-graph-core": "^0.3.0"
   },
   "devDependencies": {
     "emdash": "*",
