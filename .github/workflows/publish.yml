@@ -16,7 +16,11 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org
+          # Deliberately no `registry-url` here. When set, setup-node
+          # writes a `.npmrc` referencing ${NODE_AUTH_TOKEN} and injects
+          # a placeholder token that npm publish then tries to
+          # authenticate with, bypassing OIDC trusted publishing.
+          # Leaving it off means no `.npmrc` is created, npm uses the
+          # default registry (npmjs.org), and trusted publishing can
+          # authenticate via the GitHub Actions OIDC token.
       - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
