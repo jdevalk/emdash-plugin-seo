@@ -1,3 +1,8 @@
+export interface NavigationItem {
+  name: string;
+  url: string;
+}
+
 export interface SeoSettings {
   siteRepresents: "person" | "organization";
   separator: string;
@@ -10,6 +15,18 @@ export interface SeoSettings {
   orgName: string;
   orgLogoUrl: string;
   socials: string[];
+  /** URL to editorial/publishing principles page. */
+  publishingPrinciples: string;
+  /** Copyright year (e.g. 2026). Applied to WebPage and Article nodes. */
+  copyrightYear: number | null;
+  /** License URL (e.g. Creative Commons). Applied to WebPage and Article nodes. */
+  licenseUrl: string;
+  /** Blog section URL (e.g. "https://example.com/blog/"). Enables Blog entity. */
+  blogUrl: string;
+  /** Blog name (defaults to "Blog" if blogUrl is set). */
+  blogName: string;
+  /** Main navigation items for SiteNavigationElement schema. */
+  navigationItems: NavigationItem[];
   /**
    * Segment → display label map used by breadcrumb path derivation.
    * Keys are path segments (`"blog"`), not full paths.
@@ -53,6 +70,9 @@ export function parseSettings(map: Map<string, string>): SeoSettings {
     if (val) socials.push(val);
   }
 
+  const copyrightYearRaw = map.get("copyrightYear");
+  const copyrightYear = copyrightYearRaw ? parseInt(copyrightYearRaw, 10) || null : null;
+
   return {
     siteRepresents: (map.get("siteRepresents") as "person" | "organization") || "person",
     separator: map.get("separator") || " — ",
@@ -65,6 +85,12 @@ export function parseSettings(map: Map<string, string>): SeoSettings {
     orgName: map.get("orgName") || "",
     orgLogoUrl: map.get("orgLogoUrl") || "",
     socials,
+    publishingPrinciples: map.get("publishingPrinciples") || "",
+    copyrightYear,
+    licenseUrl: map.get("licenseUrl") || "",
+    blogUrl: map.get("blogUrl") || "",
+    blogName: map.get("blogName") || "",
+    navigationItems: parseJsonArray<NavigationItem>(map.get("navigationItems")),
     breadcrumbLabels: parseJsonRecord<string>(map.get("breadcrumbLabels")),
     breadcrumbRules: parseJsonRecord<BreadcrumbRule>(map.get("breadcrumbRules")),
   };
@@ -86,6 +112,19 @@ function parseJsonRecord<V>(raw: string | undefined): Record<string, V> {
     // fall through
   }
   return {};
+}
+
+function parseJsonArray<V>(raw: string | undefined): V[] {
+  if (!raw) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed as V[];
+    }
+  } catch {
+    // fall through
+  }
+  return [];
 }
 
 /**
@@ -211,5 +250,36 @@ export const settingsSchema = {
     type: "string" as const,
     label: "Wikipedia URL",
     description: "Full article URL",
+  },
+  publishingPrinciples: {
+    type: "string" as const,
+    label: "Publishing principles URL",
+    description: "URL to your editorial policy or publishing principles page",
+  },
+  copyrightYear: {
+    type: "string" as const,
+    label: "Copyright year",
+    description: "Year copyright was first asserted (e.g. 2026)",
+  },
+  licenseUrl: {
+    type: "string" as const,
+    label: "License URL",
+    description: "URL to content license (e.g. https://creativecommons.org/licenses/by/4.0/)",
+  },
+  blogUrl: {
+    type: "string" as const,
+    label: "Blog URL",
+    description: "Full URL of the blog section (e.g. https://example.com/blog/). Enables Blog schema entity.",
+  },
+  blogName: {
+    type: "string" as const,
+    label: "Blog name",
+    description: "Name for the Blog schema entity (defaults to \"Blog\")",
+  },
+  navigationItems: {
+    type: "string" as const,
+    label: "Navigation items (JSON)",
+    description: "JSON array of {name, url} objects for SiteNavigationElement schema",
+    multiline: true,
   },
 };

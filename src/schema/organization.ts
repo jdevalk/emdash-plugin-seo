@@ -1,4 +1,6 @@
+import { buildPiece } from "@jdevalk/seo-graph-core";
 import type { IdFactory } from "@jdevalk/seo-graph-core";
+import type { Organization, Person } from "schema-dts";
 import type { SeoSettings } from "../settings.js";
 
 /**
@@ -15,51 +17,76 @@ export function buildSiteEntity(
   const baseUrl = siteUrl.replace(/\/$/, "");
 
   if (settings.siteRepresents === "organization") {
-    const orgLogoId = `${baseUrl}/#/schema.org/ImageObject/logo`;
-    const node: Record<string, unknown> = {
-      "@type": "Organization",
-      "@id": ids.organization(orgSlug(settings)),
-      name: settings.orgName || siteName,
-      url: baseUrl,
-    };
-
-    if (settings.orgLogoUrl) {
-      node.logo = {
-        "@type": "ImageObject",
-        "@id": orgLogoId,
-        url: settings.orgLogoUrl,
-        contentUrl: settings.orgLogoUrl,
-        inLanguage: locale,
-      };
-      node.image = { "@id": orgLogoId };
-    }
-
-    if (settings.socials.length > 0) {
-      node.sameAs = settings.socials;
-    }
-
-    return node;
+    return buildOrganizationEntity(settings, baseUrl, siteName, locale, ids);
   }
 
-  // Person
+  return buildPersonEntity(settings, baseUrl, siteName, locale, ids);
+}
+
+function buildOrganizationEntity(
+  settings: SeoSettings,
+  baseUrl: string,
+  siteName: string,
+  locale: string,
+  ids: IdFactory,
+): Record<string, unknown> {
+  const orgLogoId = `${baseUrl}/#/schema.org/ImageObject/logo`;
+
+  const piece = buildPiece<Organization>({
+    "@type": "Organization",
+    "@id": ids.organization(orgSlug(settings)),
+    name: settings.orgName || siteName,
+    url: baseUrl,
+  });
+
+  if (settings.orgLogoUrl) {
+    piece.logo = {
+      "@type": "ImageObject",
+      "@id": orgLogoId,
+      url: settings.orgLogoUrl,
+      contentUrl: settings.orgLogoUrl,
+      inLanguage: locale,
+    };
+    piece.image = { "@id": orgLogoId };
+  }
+
+  if (settings.socials.length > 0) {
+    piece.sameAs = settings.socials;
+  }
+
+  if (settings.publishingPrinciples) {
+    piece.publishingPrinciples = settings.publishingPrinciples;
+  }
+
+  return piece;
+}
+
+function buildPersonEntity(
+  settings: SeoSettings,
+  baseUrl: string,
+  siteName: string,
+  locale: string,
+  ids: IdFactory,
+): Record<string, unknown> {
   const name = settings.personName || siteName;
-  const node: Record<string, unknown> = {
+
+  const piece = buildPiece<Person>({
     "@type": "Person",
     "@id": ids.person,
     name,
     url: baseUrl,
-  };
+  });
 
   if (settings.personDescription) {
-    node.description = settings.personDescription.slice(0, 250);
+    piece.description = settings.personDescription.slice(0, 250);
   }
 
   if (settings.personJobTitle) {
-    node.jobTitle = settings.personJobTitle;
+    piece.jobTitle = settings.personJobTitle;
   }
 
   if (settings.personImageUrl) {
-    node.image = {
+    piece.image = {
       "@type": "ImageObject",
       "@id": ids.personImage,
       url: settings.personImageUrl,
@@ -70,10 +97,14 @@ export function buildSiteEntity(
   }
 
   if (settings.socials.length > 0) {
-    node.sameAs = settings.socials;
+    piece.sameAs = settings.socials;
   }
 
-  return node;
+  if (settings.publishingPrinciples) {
+    piece.publishingPrinciples = settings.publishingPrinciples;
+  }
+
+  return piece;
 }
 
 /**
@@ -90,9 +121,6 @@ export function getSiteEntityId(settings: SeoSettings, ids: IdFactory): string {
 
 /**
  * Slugify the organization name for use as the Organization @id slug.
- * `makeIds` takes a slug so multi-org sites are possible; the plugin
- * only models one, so this just slugifies the configured name (or
- * falls back to `"site"` if unset).
  */
 function orgSlug(settings: SeoSettings): string {
   const name = settings.orgName || "site";

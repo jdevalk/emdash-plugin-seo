@@ -1,3 +1,4 @@
+import { buildWebSite as coreBuildWebSite } from "@jdevalk/seo-graph-core";
 import type { IdFactory } from "@jdevalk/seo-graph-core";
 import type { SeoSettings } from "../settings.js";
 import { getSiteEntityId } from "./organization.js";
@@ -13,33 +14,36 @@ export function buildWebSite(
   siteDescription: string | null,
   locale: string,
   ids: IdFactory,
+  hasNavigation: boolean,
 ): Record<string, unknown> {
   const baseUrl = siteUrl.replace(/\/$/, "");
 
-  const node: Record<string, unknown> = {
-    "@type": "WebSite",
-    "@id": ids.website,
-    url: `${baseUrl}/`,
-    name: siteName,
-    publisher: { "@id": getSiteEntityId(settings, ids) },
-    inLanguage: locale,
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${baseUrl}/search?q={search_term_string}`,
-      },
-      "query-input": {
-        "@type": "PropertyValueSpecification",
-        valueRequired: "http://schema.org/True",
-        valueName: "search_term_string",
-      },
+  const piece = coreBuildWebSite(
+    {
+      url: `${baseUrl}/`,
+      name: siteName,
+      publisher: { "@id": getSiteEntityId(settings, ids) },
+      inLanguage: locale,
+      description: siteDescription || undefined,
+      hasPart: hasNavigation ? { "@id": ids.navigation } : undefined,
+    },
+    ids,
+  );
+
+  // SearchAction with Google's query-input extension — not in schema-dts
+  // types, so set directly on the result.
+  piece.potentialAction = {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${baseUrl}/search?q={search_term_string}`,
+    },
+    "query-input": {
+      "@type": "PropertyValueSpecification",
+      valueRequired: "http://schema.org/True",
+      valueName: "search_term_string",
     },
   };
 
-  if (siteDescription) {
-    node.description = siteDescription;
-  }
-
-  return node;
+  return piece;
 }

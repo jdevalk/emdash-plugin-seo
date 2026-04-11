@@ -1,4 +1,6 @@
+import { buildPiece } from "@jdevalk/seo-graph-core";
 import type { IdFactory } from "@jdevalk/seo-graph-core";
+import type { Person } from "schema-dts";
 import type { SeoSettings } from "../settings.js";
 
 /**
@@ -19,22 +21,22 @@ export function buildAuthorPerson(
   // Per spec: reject "admin" or similar invalid author names
   if (!name || name.toLowerCase() === "admin") return null;
 
-  const node: Record<string, unknown> = {
+  const piece = buildPiece<Person>({
     "@type": "Person",
     "@id": ids.person,
     name,
-  };
+  });
 
   if (settings.personDescription) {
-    node.description = settings.personDescription.slice(0, 250);
+    piece.description = settings.personDescription.slice(0, 250);
   }
 
   if (settings.personUrl) {
-    node.url = settings.personUrl;
+    piece.url = settings.personUrl;
   }
 
   if (settings.personImageUrl) {
-    node.image = {
+    piece.image = {
       "@type": "ImageObject",
       "@id": ids.personImage,
       url: settings.personImageUrl,
@@ -44,8 +46,8 @@ export function buildAuthorPerson(
   }
 
   if (settings.socials.length > 0) {
-    node.sameAs = settings.socials;
+    piece.sameAs = settings.socials;
   }
 
-  return node;
+  return piece;
 }

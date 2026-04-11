@@ -2,11 +2,15 @@ import type { PublicPageContext } from "emdash";
 import {
   assembleGraph,
   buildBreadcrumbList,
+  buildImageObject,
+  buildPiece,
+  buildSiteNavigationElement,
   makeIds,
   type GraphEntity,
 } from "@jdevalk/seo-graph-core";
+import type { Blog } from "schema-dts";
 import type { SeoSettings } from "../settings.js";
-import { buildSiteEntity } from "./organization.js";
+import { buildSiteEntity, getSiteEntityId } from "./organization.js";
 import { buildWebSite } from "./website.js";
 import { buildWebPage } from "./webpage.js";
 import { buildArticle } from "./article.js";
@@ -17,19 +21,12 @@ import { buildBreadcrumbs } from "./breadcrumb.js";
  * Build the complete JSON-LD schema graph for a page.
  * Outputs a @graph array with distinct, linked nodes.
  *
- * The individual piece builders (`buildSiteEntity`, `buildWebSite`,
- * `buildWebPage`, `buildArticle`, `buildAuthorPerson`) stay EmDash-specific
- * because EmDash has its own WebSite SearchAction shape and its own
- * Organization-or-Person site entity dispatch that don't map cleanly
- * onto `@jdevalk/seo-graph-core`'s piece builders.
- *
- * What we share with joost.blog via seo-graph-core is (a) the envelope
- * — `assembleGraph` wraps pieces in `{ @context, @graph }` with
- * first-wins deduplication by `@id` — and (b) the `@id` scheme via
- * `makeIds()`, so both consumers emit structurally-identical graphs
- * even though they build the pieces very differently. Breadcrumbs
- * use `buildBreadcrumbList` directly from core since the wrapper
- * shape is the same everywhere.
+ * Individual piece builders delegate to `@jdevalk/seo-graph-core`'s
+ * typed builders (`buildWebSite`, `buildWebPage`, `buildArticle`,
+ * `buildPiece<Organization>`, `buildPiece<Person>`) with thin
+ * EmDash-specific wrappers that map EmDash's page/settings model
+ * onto core's input types. This keeps both EmDash and joost.blog on
+ * the same code path for graph construction, not just the ID scheme.
  */
 export function buildSchemaGraph(
   page: PublicPageContext,
@@ -54,6 +51,12 @@ export function buildSchemaGraph(
   const crumbs = buildBreadcrumbs(page, settings, siteUrl);
   const hasBreadcrumbs = crumbs !== null && crumbs.length > 1;
   const pageUrl = canonical || page.url;
+  const siteEntityId = getSiteEntityId(settings, ids);
+
+  // Derive Blog @id when blog settings are configured.
+  const blogId = settings.blogUrl
+    ? `${settings.blogUrl.replace(/\/$/, "")}/#blog`
+    : null;
 
   const pieces: GraphEntity[] = [];
 
@@ -61,6 +64,7 @@ export function buildSchemaGraph(
   pieces.push(buildSiteEntity(settings, siteUrl, siteName, locale, ids) as GraphEntity);
 
   // 2. WebSite - always present
+  const hasNavigation = settings.navigationItems.length > 0;
   pieces.push(
     buildWebSite(
       settings,
@@ -69,22 +73,70 @@ export function buildSchemaGraph(
       settings.defaultDescription || null,
       locale,
       ids,
+      hasNavigation,
     ) as GraphEntity,
   );
 
-  // 3. WebPage - always present
+  // 3. SiteNavigationElement - when navigation items are configured
+  if (hasNavigation) {
+    pieces.push(
+      buildSiteNavigationElement(
+        {
+          name: "Main navigation",
+          isPartOf: { "@id": ids.website },
+          items: settings.navigationItems,
+        },
+        ids,
+      ) as GraphEntity,
+    );
+  }
+
+  // 4. Blog entity - when blog URL is configured
+  if (blogId && settings.blogUrl) {
+    pieces.push(
+      buildPiece<Blog>({
+        "@type": "Blog",
+        "@id": blogId,
+        name: settings.blogName || "Blog",
+        url: settings.blogUrl,
+        publisher: { "@id": siteEntityId },
+        inLanguage: locale,
+      }) as GraphEntity,
+    );
+  }
+
+  // 5. WebPage - always present
   pieces.push(
-    buildWebPage(page, canonical, ogTitle, description, locale, ids, hasBreadcrumbs) as GraphEntity,
+    buildWebPage(
+      page, settings, canonical, ogTitle, description, locale, ids,
+      hasBreadcrumbs, siteEntityId,
+    ) as GraphEntity,
   );
 
-  // 4. BreadcrumbList - when derived/ruled with >1 crumb
+  // 6. BreadcrumbList - when derived/ruled with >1 crumb
   if (hasBreadcrumbs) {
     pieces.push(
       buildBreadcrumbList({ url: pageUrl, items: crumbs! }, ids) as GraphEntity,
     );
   }
 
-  // 5. Article + Author Person - for content pages with article meta
+  // 7. Primary ImageObject - when the page has an image
+  if (page.image) {
+    pieces.push(
+      buildImageObject(
+        {
+          pageUrl,
+          url: page.image,
+          width: 1200,
+          height: 675,
+          inLanguage: locale,
+        },
+        ids,
+      ) as GraphEntity,
+    );
+  }
+
+  // 8. Article + Author Person - for content pages with article meta
   if (page.kind === "content" && page.articleMeta?.publishedTime) {
     const article = buildArticle(
       page,
@@ -95,6 +147,7 @@ export function buildSchemaGraph(
       description,
       locale,
       ids,
+      blogId,
     );
     if (article) pieces.push(article as GraphEntity);
 
@@ -106,5 +159,5 @@ export function buildSchemaGraph(
     if (author) pieces.push(author as GraphEntity);
   }
 
-  return assembleGraph(pieces);
+  return assembleGraph(pieces, { warnOnDanglingReferences: true });
 }
