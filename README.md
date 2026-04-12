@@ -135,8 +135,16 @@ import { createIndexNowKeyRoute } from '@jdevalk/astro-seo-graph';
 export const GET = createIndexNowKeyRoute({ key: 'your-key-here' });
 ```
 
-Without the key file, IndexNow submissions are rejected (HTTP 403) — the
-plugin logs the failure on `ctx.log.warn` but does not throw.
+> **Deploy the key file before enabling the toggle.** IndexNow verifies
+> host ownership on every submission by fetching
+> `https://<host>/<key>.txt`. Submissions sent before the key file is
+> reachable in production are rejected (HTTP 403) and the key gets
+> marked invalid — you'll have to delete the stored key from plugin KV
+> and mint a new one. Ship the Astro route, deploy, confirm the `.txt`
+> loads over HTTPS, *then* flip the **IndexNow submission** toggle.
+
+When rejections occur, the plugin logs on `ctx.log.warn` but does not
+throw — transitions still succeed locally.
 
 ## Requirements
 
