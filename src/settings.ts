@@ -282,4 +282,15 @@ export const settingsSchema = {
     description: "JSON array of {name, url} objects for SiteNavigationElement schema",
     multiline: true,
   },
+  indexnowEnabled: {
+    type: "select" as const,
+    label: "IndexNow submission",
+    description:
+      "Submit published/unpublished URLs to IndexNow (Bing, Yandex, Seznam, Naver, Yep). A key is generated automatically on first use.",
+    options: [
+      { value: "false", label: "Disabled" },
+      { value: "true", label: "Enabled" },
+    ],
+    default: "false",
+  },
 };

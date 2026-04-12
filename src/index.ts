@@ -1,11 +1,16 @@
 import { definePlugin } from "emdash";
 import type { PluginDescriptor, RouteContext } from "emdash";
 import { metadataHandler } from "./metadata.js";
+import {
+  getKeyFileBody,
+  getOrCreateIndexNowKey,
+  handleIndexNowTransition,
+} from "./indexnow.js";
 
 export function seoPlugin(): PluginDescriptor {
   return {
     id: "seo",
-    version: "0.3.0",
+    version: "0.5.0",
     format: "native",
     entrypoint: new URL("./index.ts", import.meta.url).pathname,
     adminEntry: new URL("./admin.tsx", import.meta.url).pathname,
@@ -19,13 +24,22 @@ export function seoPlugin(): PluginDescriptor {
 export function createPlugin() {
   return definePlugin({
     id: "seo",
-    version: "0.3.0",
-    capabilities: ["read:content", "page:inject"],
+    version: "0.5.0",
+    capabilities: ["read:content", "page:inject", "network:fetch"],
+    allowedHosts: ["api.indexnow.org"],
 
     hooks: {
       "page:metadata": {
         handler: metadataHandler,
         priority: 10,
+      },
+      "content:afterPublish": {
+        handler: handleIndexNowTransition,
+        priority: 50,
+      },
+      "content:afterUnpublish": {
+        handler: handleIndexNowTransition,
+        priority: 50,
       },
     },
 
@@ -48,6 +62,12 @@ export function createPlugin() {
             await ctx.kv.set(`settings:${key}`, value);
           }
           return { ok: true };
+        },
+      },
+      "indexnow/key": {
+        handler: async (ctx: RouteContext) => {
+          const key = await getOrCreateIndexNowKey(ctx);
+          return { key, keyFile: await getKeyFileBody(ctx) };
         },
       },
     },

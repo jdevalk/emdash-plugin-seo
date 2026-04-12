@@ -17,13 +17,16 @@ An SEO plugin for [EmDash CMS](https://github.com/emdash-cms/emdash) that genera
 - **Open Graph** — `og:title` without site name suffix, `og:type: article` for content pages, full set of OG tags
 - **Twitter Cards** — `summary_large_image` when image present, site handle from settings
 - **JSON-LD schema graph** with linked nodes:
-  - `Person` or `Organization` (configurable)
-  - `WebSite` with `SearchAction`
-  - `WebPage` (`CollectionPage` for archives)
-  - `Article` with author `Person` (for content pages)
+  - `Person` or `Organization` (configurable), with `publishingPrinciples`
+  - `WebSite` with `SearchAction` and optional `SiteNavigationElement`
+  - `Blog` entity (when blog URL is configured)
+  - `WebPage` (`CollectionPage` for archives, `ProfilePage` for `/about`), with `about`, copyright, and license fields
+  - `BlogPosting` with author `Person` (for content pages), linked to `Blog` when configured
+  - `ImageObject` for primary page images
   - `BreadcrumbList` with a back-reference from `WebPage`
 - **Breadcrumbs** — derived from the URL path by default, with segment label overrides (`/blog/` → "Blog") and per-`pageType` rule overrides both editable in the admin UI. `@id` scheme matches [joost.blog](https://joost.blog) via `@jdevalk/seo-graph-core`
 - **hreflang alternates** — for multilingual EmDash sites (Astro `i18n` + `translation_group`), one `<link rel="alternate" hreflang="…">` per published sibling plus an automatic `x-default`, with BCP 47 tag normalization (`fr-ca` → `fr-CA`). Zero cost on single-locale sites
+- **IndexNow** — on publish/unpublish transitions, submits the affected URL to [IndexNow](https://www.indexnow.org) so Bing, Yandex, Seznam, Naver, and Yep recrawl immediately. Opt-in via a single toggle in the settings UI; the key is generated and persisted automatically on first use
 - **Admin settings UI** — auto-generated from `settingsSchema` for configuring Person/Organization identity, social profiles, title separator, and default description
 
 ## Installation
@@ -64,8 +67,14 @@ Then configure your site identity and social profiles in the EmDash admin under 
 | Person name / bio / image / job title / URL | Person schema fields |
 | Organization name / logo URL | Organization schema fields |
 | Social URLs | Twitter/X, Facebook, LinkedIn, Instagram, YouTube, GitHub, Bluesky, Mastodon, Wikipedia |
+| Publishing principles URL | Link to editorial policy page |
+| Copyright year | Year copyright was first asserted |
+| License URL | Content license (e.g. Creative Commons) |
+| Blog URL / name | Enables `Blog` schema entity linked to `BlogPosting` nodes |
+| Navigation items | JSON array of `{name, url}` for `SiteNavigationElement` schema |
 | Breadcrumb segment labels | `segment → display label` overrides (e.g. `blog → Blog`) |
 | Breadcrumb page type rules | Per-`pageType` ordered crumb lists, JSON-edited, for themes that need full control over trail shape |
+| IndexNow submission | Submit published/unpublished URLs to IndexNow. Disabled by default |
 
 ## Multilingual sites (hreflang)
 
@@ -107,9 +116,31 @@ i18n: {
 
 URLs become `/fr-ca/…` and `/fr-fr/…`, and the emitted `hreflang` attributes are normalized to conventional casing (`fr-CA`, `fr-FR`). EmDash core currently drops Astro's object-form `{ path, codes }` shape at the integration boundary, so the code-as-path workaround is the supported path for region tags in this plugin version.
 
+## IndexNow
+
+When enabled via the **IndexNow submission** setting, the plugin submits
+the canonical URL of any content item that transitions to or from
+published. A 32-character hex key is minted on first use and persisted in
+plugin KV.
+
+The front-end Astro site must serve the key-verification file at
+`/<key>.txt`. Fetch the key from the plugin's `indexnow/key` route and
+wire a route on the Astro side using
+[`createIndexNowKeyRoute`](https://www.npmjs.com/package/@jdevalk/astro-seo-graph):
+
+```ts
+// src/pages/[your-key-here].txt.ts
+import { createIndexNowKeyRoute } from '@jdevalk/astro-seo-graph';
+
+export const GET = createIndexNowKeyRoute({ key: 'your-key-here' });
+```
+
+Without the key file, IndexNow submissions are rejected (HTTP 403) — the
+plugin logs the failure on `ctx.log.warn` but does not throw.
+
 ## Requirements
 
-Requires EmDash with support for running `page:metadata` hooks on public pages for anonymous visitors. See [emdash-cms/emdash#166](https://github.com/emdash-cms/emdash/issues/166) and [PR #169](https://github.com/emdash-cms/emdash/pull/169).
+Requires EmDash with support for running `page:metadata` hooks on public pages for anonymous visitors (fixed in [emdash-cms/emdash#119](https://github.com/emdash-cms/emdash/pull/119)).
 
 ## Contributing
 
