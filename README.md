@@ -28,6 +28,7 @@ An SEO plugin for [EmDash CMS](https://github.com/emdash-cms/emdash) that genera
 - **hreflang alternates** — for multilingual EmDash sites (Astro `i18n` + `translation_group`), one `<link rel="alternate" hreflang="…">` per published sibling plus an automatic `x-default`, with BCP 47 tag normalization (`fr-ca` → `fr-CA`). Zero cost on single-locale sites
 - **llms.txt** *(experimental)* — exposes an index of published content at the plugin's `llms/txt` route, following the small-form [llms.txt spec](https://llmstxt.org). Enabled by default; flip the setting to disable. Only the plain `llms.txt` file is supported; the `llms-full.txt` variant is not implemented
 - **Schema map** *(experimental)* — exposes a list of every published URL backed by schema markup at the plugin's `schema/map` route, ready to be wired to a `/schemamap.xml` Astro endpoint for agent/crawler discovery
+- **Fuzzy Redirects** — admin tool that mines the core 404 log, ranks live URLs by path similarity (Levenshtein + token overlap + last-segment match), and lets you one-click create a 301 redirect for the best target. Catches moved slugs, typos in inbound links, and punctuation drift without having to write regex rules
 - **IndexNow** — on publish/unpublish transitions, submits the affected URL to [IndexNow](https://www.indexnow.org) so Bing, Yandex, Seznam, Naver, and Yep recrawl immediately. Opt-in via a single toggle in the settings UI; the key is generated and persisted automatically on first use
 - **Admin settings UI** — auto-generated from `settingsSchema` for configuring Person/Organization identity, social profiles, title separator, and default description
 
@@ -186,6 +187,34 @@ export const GET: APIRoute = async ({ request }) => {
 Alternatively, import `buildLlmsTxt` from this plugin and assemble the
 body yourself from `getEmDashCollection()` results if you want full
 control over sectioning, ordering, or filtering.
+
+## Fuzzy Redirects
+
+The plugin ships an admin page (**SEO → Fuzzy Redirects**) that turns
+the core 404 log into a prioritized redirect work queue. For every
+path that's been requested and returned 404, the tool:
+
+1. Fetches the current list of published URLs via the plugin's own
+   `schema/map` route.
+2. Scores each live URL against the 404'd path using a composite
+   similarity metric (Levenshtein on the full path, token-overlap
+   Jaccard, and a tokenized last-segment match bonus).
+3. Shows the top matches with their scores and a free-text override
+   field, and a **Create redirect** button that creates a 301 via the
+   core `/_emdash/api/redirects` endpoint.
+
+A minimum-score slider tunes aggressiveness — drop it to see weaker
+matches, raise it to hide noise. Created redirects are grouped under
+`seo-fuzzy-suggester` so you can audit or bulk-remove them later.
+
+No configuration needed; the tool appears as soon as the plugin is
+installed and the 404 log has entries.
+
+> **Interim implementation.** The tool currently requires manual
+> review before a redirect is created. A future version will use the
+> proposed `notfound` hook ([emdash-cms/emdash#525](https://github.com/emdash-cms/emdash/discussions/525))
+> to suggest-or-apply redirects automatically on 404 — same matching
+> logic, automatic trigger.
 
 ## Schema map (experimental)
 

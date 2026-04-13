@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-04-13
+
+### Added
+
+- **Fuzzy Redirects admin tool.** New admin page that reads the core 404 log, pairs each missing path with the closest published URLs (from the plugin's own `schema/map` route), and lets you one-click create a 301 redirect for the chosen destination. Scoring combines Levenshtein distance, token overlap, and a tokenized last-segment match bonus — so moved slugs, single-character typos, and punctuation drift all surface good suggestions. A minimum-score slider tunes how aggressive the suggestions are.
+- `rankCandidates()` / `scoreSlugMatch()` exported from `src/fuzzy.ts` for reuse. These will plug straight into the eventual `notfound` hook ([emdash-cms/emdash#525](https://github.com/emdash-cms/emdash/discussions/525)) once upstream lands — same matching logic, automatic trigger.
+
 ## [0.7.0] - 2026-04-13
 
 ### Added

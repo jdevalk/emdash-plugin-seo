@@ -12,12 +12,13 @@ import { listSchemaEntries } from "./schema/endpoints.js";
 export function seoPlugin(): PluginDescriptor {
   return {
     id: "seo",
-    version: "0.7.0",
+    version: "0.8.0",
     format: "native",
     entrypoint: new URL("./index.ts", import.meta.url).pathname,
     adminEntry: new URL("./admin.tsx", import.meta.url).pathname,
     adminPages: [
       { path: "/settings", label: "SEO", icon: "settings" },
+      { path: "/fuzzy-redirects", label: "Fuzzy Redirects", icon: "arrow-right" },
     ],
     options: {},
   };
@@ -26,7 +27,7 @@ export function seoPlugin(): PluginDescriptor {
 export function createPlugin() {
   return definePlugin({
     id: "seo",
-    version: "0.7.0",
+    version: "0.8.0",
     capabilities: ["read:content", "page:inject", "network:fetch"],
     allowedHosts: ["api.indexnow.org"],
 
@@ -90,6 +91,7 @@ export function createPlugin() {
     admin: {
       pages: [
         { path: "/settings", label: "SEO", icon: "settings" },
+        { path: "/fuzzy-redirects", label: "Fuzzy Redirects", icon: "arrow-right" },
       ],
     },
   });

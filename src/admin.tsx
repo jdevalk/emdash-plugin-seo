@@ -1,6 +1,8 @@
 import { apiFetch as baseFetch, parseApiResponse } from "emdash/plugin-utils";
 import * as React from "react";
 
+import { FuzzyRedirectsPage } from "./admin-redirects.js";
+
 const API = "/_emdash/api/plugins/seo";
 
 async function apiFetch(route: string, body?: unknown): Promise<Response> {
@@ -351,4 +353,5 @@ function SettingsPage() {
 
 export const pages = {
   "/settings": SettingsPage,
+  "/fuzzy-redirects": FuzzyRedirectsPage,
 };
