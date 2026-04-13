@@ -65,5 +65,20 @@ export async function metadataHandler(
     contributions.push({ kind: "jsonld", id: "primary", graph: schema });
   }
 
+  // 8. NLWeb discovery link — advertises a conversational endpoint so
+  // agents can discover the site's chat surface without scraping HTML.
+  // Requires emdash >= the release shipping emdash-cms/emdash#523; on
+  // older versions the sandbox allowlist rejects this rel and the
+  // contribution is silently dropped. Remove the ts-expect-error once
+  // the published emdash types include "nlweb" in PageMetadataLinkRel.
+  if (settings.nlwebEndpoint) {
+    contributions.push({
+      kind: "link",
+      // @ts-expect-error — "nlweb" not yet in published emdash types; merged upstream in #523.
+      rel: "nlweb",
+      href: settings.nlwebEndpoint,
+    });
+  }
+
   return contributions;
 }

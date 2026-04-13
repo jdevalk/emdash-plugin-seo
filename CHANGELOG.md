@@ -5,11 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [0.9.0] - 2026-04-13
+
+### Added
+
+- **NLWeb `<link>` tag.** When the **NLWeb endpoint URL** setting is populated, the plugin contributes `<link rel="nlweb" href="…">` on every rendered page so conversational agents can discover the site's chat surface. Requires the EmDash release that contains [emdash-cms/emdash#523](https://github.com/emdash-cms/emdash/pull/523) (merged); on older versions the sandbox allowlist rejects the `rel` value and the contribution is silently dropped. The contribution site carries a transient `@ts-expect-error` against the currently-published emdash types — it auto-unblocks once the new emdash version is on npm.
 
 ### Documented
 
-- **Three shipped features (`llms.txt`, `schema/map`, `Fuzzy Redirects`) silently produce empty results against real EmDash sites.** Root causes are upstream: `ContentItem` strips `slug`/`status`/`locale` ([emdash-cms/emdash#530](https://github.com/emdash-cms/emdash/discussions/530)), and the 404 logging middleware captures the rewritten `/404` instead of the original requested URL ([emdash-cms/emdash#525](https://github.com/emdash-cms/emdash/discussions/525)). README now carries a prominent warning at the top with the table of affected features and the upstream tracking links. No code change in this entry — the features will start working once upstream lands the fixes.
+- **Three earlier-shipped features (`llms.txt`, `schema/map`, `Fuzzy Redirects`) silently produce empty results against real EmDash sites.** Root causes are upstream: `ContentItem` strips `slug`/`status`/`locale` ([emdash-cms/emdash#530](https://github.com/emdash-cms/emdash/discussions/530)), and the 404 logging middleware captures the rewritten `/404` instead of the original requested URL ([emdash-cms/emdash#525](https://github.com/emdash-cms/emdash/discussions/525)). README now carries a prominent warning at the top with the table of affected features and the upstream tracking links. No code change — the features will start working once upstream lands the fixes.
 
 ## [0.8.0] - 2026-04-13
 

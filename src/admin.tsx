@@ -44,6 +44,7 @@ const FIELDS: FieldDef[] = [
   { key: "socialBluesky", type: "string", label: "Bluesky URL", section: "social" },
   { key: "socialMastodon", type: "string", label: "Mastodon URL", section: "social" },
   { key: "socialWikipedia", type: "string", label: "Wikipedia URL", section: "social" },
+  { key: "nlwebEndpoint", type: "string", label: "NLWeb endpoint URL", description: "Absolute URL of your NLWeb (conversational) endpoint. When set, the plugin emits <link rel=\"nlweb\" href=\"…\"> on every page. Requires EmDash with emdash-cms/emdash#523.", section: "discovery" },
 ];
 
 const inputStyle: React.CSSProperties = {
@@ -301,6 +302,7 @@ function SettingsPage() {
     { id: "general", label: "General" },
     ...(siteRepresents === "person" ? [{ id: "person", label: "Person" }] : [{ id: "org", label: "Organization" }]),
     { id: "social", label: "Social Profiles" },
+    { id: "discovery", label: "Agent discovery" },
   ];
 
   return (

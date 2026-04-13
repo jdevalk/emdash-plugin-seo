@@ -39,6 +39,12 @@ export interface SeoSettings {
    * current page URL (canonical).
    */
   breadcrumbRules: Record<string, BreadcrumbRule>;
+  /**
+   * Absolute URL of an NLWeb endpoint. When set, the plugin contributes
+   * a `<link rel="nlweb" href="...">` tag on every rendered page so
+   * conversational agents can discover the site's chat surface.
+   */
+  nlwebEndpoint: string;
 }
 
 export interface BreadcrumbRuleCrumb {
@@ -93,6 +99,7 @@ export function parseSettings(map: Map<string, string>): SeoSettings {
     navigationItems: parseJsonArray<NavigationItem>(map.get("navigationItems")),
     breadcrumbLabels: parseJsonRecord<string>(map.get("breadcrumbLabels")),
     breadcrumbRules: parseJsonRecord<BreadcrumbRule>(map.get("breadcrumbRules")),
+    nlwebEndpoint: map.get("nlwebEndpoint") || "",
   };
 }
 
@@ -310,5 +317,11 @@ export const settingsSchema = {
     description:
       "Optional blurb rendered as the blockquote at the top of llms.txt. Falls back to the default meta description.",
     multiline: true,
+  },
+  nlwebEndpoint: {
+    type: "string" as const,
+    label: "NLWeb endpoint URL",
+    description:
+      "Absolute URL of your NLWeb (conversational) endpoint. When set, the plugin emits <link rel=\"nlweb\" href=\"...\"> on every page so agents can discover the chat surface.",
   },
 };
