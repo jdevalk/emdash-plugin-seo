@@ -26,6 +26,7 @@ An SEO plugin for [EmDash CMS](https://github.com/emdash-cms/emdash) that genera
   - `BreadcrumbList` with a back-reference from `WebPage`
 - **Breadcrumbs** — derived from the URL path by default, with segment label overrides (`/blog/` → "Blog") and per-`pageType` rule overrides both editable in the admin UI. `@id` scheme matches [joost.blog](https://joost.blog) via `@jdevalk/seo-graph-core`
 - **hreflang alternates** — for multilingual EmDash sites (Astro `i18n` + `translation_group`), one `<link rel="alternate" hreflang="…">` per published sibling plus an automatic `x-default`, with BCP 47 tag normalization (`fr-ca` → `fr-CA`). Zero cost on single-locale sites
+- **llms.txt** *(experimental)* — exposes an index of published content at the plugin's `llms/txt` route, following the small-form [llms.txt spec](https://llmstxt.org). Enabled by default; flip the setting to disable. Only the plain `llms.txt` file is supported; the `llms-full.txt` variant is not implemented
 - **IndexNow** — on publish/unpublish transitions, submits the affected URL to [IndexNow](https://www.indexnow.org) so Bing, Yandex, Seznam, Naver, and Yep recrawl immediately. Opt-in via a single toggle in the settings UI; the key is generated and persisted automatically on first use
 - **Admin settings UI** — auto-generated from `settingsSchema` for configuring Person/Organization identity, social profiles, title separator, and default description
 
@@ -75,6 +76,8 @@ Then configure your site identity and social profiles in the EmDash admin under 
 | Breadcrumb segment labels | `segment → display label` overrides (e.g. `blog → Blog`) |
 | Breadcrumb page type rules | Per-`pageType` ordered crumb lists, JSON-edited, for themes that need full control over trail shape |
 | IndexNow submission | Submit published/unpublished URLs to IndexNow. Disabled by default |
+| llms.txt (experimental) | Expose an `llms.txt` index of published content. Enabled by default |
+| llms.txt site description | Optional blockquote text at the top of `llms.txt`. Falls back to the default meta description |
 
 ## Multilingual sites (hreflang)
 
@@ -145,6 +148,43 @@ export const GET = createIndexNowKeyRoute({ key: 'your-key-here' });
 
 When rejections occur, the plugin logs on `ctx.log.warn` but does not
 throw — transitions still succeed locally.
+
+## llms.txt (experimental)
+
+> **Experimental.** Shape, settings, and exposed API may change in a
+> minor release. Only the small-form `llms.txt` is implemented; the
+> `llms-full.txt` variant is out of scope for now.
+
+The plugin generates an [`llms.txt`](https://llmstxt.org) index of all
+published content, grouped by collection label, and exposes it on the
+plugin route `llms/txt`. It's on by default — disable it via the
+**llms.txt (experimental)** setting if you don't want the file exposed. Each collection contributes one `##` section of
+bulleted `- [Title](URL): description` entries; only collections with a
+`urlPattern` are included.
+
+Serve it from your Astro site by creating an endpoint that proxies the
+plugin route:
+
+```ts
+// src/pages/llms.txt.ts
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ request }) => {
+  const origin = new URL(request.url).origin;
+  const res = await fetch(`${origin}/_emdash/api/plugins/seo/llms/txt`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
+  });
+  const { enabled, body } = (await res.json()) as { enabled: boolean; body: string };
+  if (!enabled) return new Response("Not found", { status: 404 });
+  return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
+};
+```
+
+Alternatively, import `buildLlmsTxt` from this plugin and assemble the
+body yourself from `getEmDashCollection()` results if you want full
+control over sectioning, ordering, or filtering.
 
 ## Requirements
 

@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-04-13
+
+### Added
+
+- **llms.txt (experimental).** Generates a small-form [`llms.txt`](https://llmstxt.org) index of all published content across every collection that has a `urlPattern`, grouped by collection label. Exposed on the plugin route `llms/txt`; serve it from Astro by proxying that route at `/llms.txt`. Enabled by default — flip the **llms.txt (experimental)** toggle to disable. Only the plain `llms.txt` is implemented; the `llms-full.txt` variant is out of scope.
+- `buildLlmsTxt()` exported for consumers who want to assemble the body from `getEmDashCollection()` results with custom sectioning or ordering.
+
 ## [0.4.2] - 2026-04-09
 
 ### Changed

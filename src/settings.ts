@@ -293,4 +293,22 @@ export const settingsSchema = {
     ],
     default: "false",
   },
+  llmsTxtEnabled: {
+    type: "select" as const,
+    label: "llms.txt (experimental)",
+    description:
+      "Expose an llms.txt index of published content on the plugin's llms/txt route. Wire a public /llms.txt Astro route to serve it.",
+    options: [
+      { value: "true", label: "Enabled" },
+      { value: "false", label: "Disabled" },
+    ],
+    default: "true",
+  },
+  llmsTxtDescription: {
+    type: "string" as const,
+    label: "llms.txt site description",
+    description:
+      "Optional blurb rendered as the blockquote at the top of llms.txt. Falls back to the default meta description.",
+    multiline: true,
+  },
 };
