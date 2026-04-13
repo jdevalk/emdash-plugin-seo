@@ -9,6 +9,22 @@
 
 An SEO plugin for [EmDash CMS](https://github.com/emdash-cms/emdash) that generates meta tags, Open Graph, Twitter Cards, canonical URLs, robots directives, and JSON-LD schema markup via the `page:metadata` hook.
 
+> ## ⚠️ Known broken — content-enumeration features depend on upstream fixes
+>
+> Three shipped features in this plugin **silently produce empty results** against real EmDash sites because of gaps in the current plugin contract:
+>
+> | Feature | Symptom | Blocked on |
+> |---|---|---|
+> | **`llms.txt`** (v0.6.0) | Route returns 200 but body has no entries | [emdash-cms/emdash#530](https://github.com/emdash-cms/emdash/discussions/530) |
+> | **Schema map** (v0.7.0) | `schema/map` returns `{items: []}` | [emdash-cms/emdash#530](https://github.com/emdash-cms/emdash/discussions/530) |
+> | **Fuzzy Redirects** (v0.8.0) | Empty candidate list; 404 log only ever contains `/404` | [emdash-cms/emdash#530](https://github.com/emdash-cms/emdash/discussions/530) + [#525](https://github.com/emdash-cms/emdash/discussions/525) |
+>
+> **Root causes (both upstream):**
+> 1. `ContentItem` strips `slug`/`status`/`locale` — plugins can't enumerate published URLs through the documented contract ([#530](https://github.com/emdash-cms/emdash/discussions/530)).
+> 2. The 404 logging middleware captures the rewritten `/404` path, never the original URL the user requested ([#525](https://github.com/emdash-cms/emdash/discussions/525)).
+>
+> **Other plugin features (meta tags, Open Graph, canonical, robots, schema graph, hreflang, IndexNow) work normally — they live on the `page:metadata` hook and don't enumerate content.** This warning will be removed once upstream lands the fixes.
+
 ## Features
 
 - **Meta descriptions** with configurable fallback chain
