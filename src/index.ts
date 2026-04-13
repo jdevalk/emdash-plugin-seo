@@ -7,11 +7,12 @@ import {
   handleIndexNowTransition,
 } from "./indexnow.js";
 import { generateLlmsTxt } from "./llms.js";
+import { listSchemaEntries } from "./schema/endpoints.js";
 
 export function seoPlugin(): PluginDescriptor {
   return {
     id: "seo",
-    version: "0.6.0",
+    version: "0.7.0",
     format: "native",
     entrypoint: new URL("./index.ts", import.meta.url).pathname,
     adminEntry: new URL("./admin.tsx", import.meta.url).pathname,
@@ -25,7 +26,7 @@ export function seoPlugin(): PluginDescriptor {
 export function createPlugin() {
   return definePlugin({
     id: "seo",
-    version: "0.6.0",
+    version: "0.7.0",
     capabilities: ["read:content", "page:inject", "network:fetch"],
     allowedHosts: ["api.indexnow.org"],
 
@@ -75,6 +76,13 @@ export function createPlugin() {
         handler: async (ctx: RouteContext) => {
           const body = await generateLlmsTxt(ctx);
           return { enabled: body !== null, body: body ?? "" };
+        },
+      },
+      "schema/map": {
+        public: true,
+        handler: async (ctx: RouteContext) => {
+          const items = await listSchemaEntries(ctx);
+          return { items };
         },
       },
     },

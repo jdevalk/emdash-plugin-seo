@@ -27,6 +27,7 @@ An SEO plugin for [EmDash CMS](https://github.com/emdash-cms/emdash) that genera
 - **Breadcrumbs** — derived from the URL path by default, with segment label overrides (`/blog/` → "Blog") and per-`pageType` rule overrides both editable in the admin UI. `@id` scheme matches [joost.blog](https://joost.blog) via `@jdevalk/seo-graph-core`
 - **hreflang alternates** — for multilingual EmDash sites (Astro `i18n` + `translation_group`), one `<link rel="alternate" hreflang="…">` per published sibling plus an automatic `x-default`, with BCP 47 tag normalization (`fr-ca` → `fr-CA`). Zero cost on single-locale sites
 - **llms.txt** *(experimental)* — exposes an index of published content at the plugin's `llms/txt` route, following the small-form [llms.txt spec](https://llmstxt.org). Enabled by default; flip the setting to disable. Only the plain `llms.txt` file is supported; the `llms-full.txt` variant is not implemented
+- **Schema map** *(experimental)* — exposes a list of every published URL backed by schema markup at the plugin's `schema/map` route, ready to be wired to a `/schemamap.xml` Astro endpoint for agent/crawler discovery
 - **IndexNow** — on publish/unpublish transitions, submits the affected URL to [IndexNow](https://www.indexnow.org) so Bing, Yandex, Seznam, Naver, and Yep recrawl immediately. Opt-in via a single toggle in the settings UI; the key is generated and persisted automatically on first use
 - **Admin settings UI** — auto-generated from `settingsSchema` for configuring Person/Organization identity, social profiles, title separator, and default description
 
@@ -185,6 +186,69 @@ export const GET: APIRoute = async ({ request }) => {
 Alternatively, import `buildLlmsTxt` from this plugin and assemble the
 body yourself from `getEmDashCollection()` results if you want full
 control over sectioning, ordering, or filtering.
+
+## Schema map (experimental)
+
+> **Experimental.** Shape and exposed API may change in a minor
+> release. Per-URL schema endpoints (`/schema/<slug>.json`) are not
+> implemented yet — they depend on a core helper being discussed
+> upstream.
+
+Every published page on an EmDash site carries a JSON-LD schema graph
+in its `<head>`. Agents and crawlers that want to enumerate those pages
+without scraping every HTML document need a *schema map* — the same
+idea as `sitemap.xml`, but scoped to "URLs that have structured data."
+
+The plugin exposes the raw list at `schema/map` as JSON:
+
+```json
+{
+  "items": [
+    { "url": "https://example.com/blog/hello/", "collection": "blog", "updatedAt": "2026-02-01T00:00:00Z" },
+    { "url": "https://example.com/about/",      "collection": "pages", "updatedAt": "2026-01-03T00:00:00Z" }
+  ]
+}
+```
+
+Wire it to `/schemamap.xml` at your site root with a small Astro
+endpoint. The route is public — no auth needed on the fetch:
+
+```ts
+// src/pages/schemamap.xml.ts
+import type { APIRoute } from "astro";
+
+interface SchemaMapEntry {
+  url: string;
+  collection: string;
+  updatedAt: string;
+}
+
+export const GET: APIRoute = async ({ request }) => {
+  const origin = new URL(request.url).origin;
+  const res = await fetch(`${origin}/_emdash/api/plugins/seo/schema/map`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
+  });
+  const { items } = (await res.json()) as { items: SchemaMapEntry[] };
+
+  const urls = items
+    .map(
+      ({ url, updatedAt }) =>
+        `  <url><loc>${url}</loc><lastmod>${updatedAt}</lastmod></url>`,
+    )
+    .join("\n");
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls}
+</urlset>`;
+
+  return new Response(xml, {
+    headers: { "Content-Type": "application/xml; charset=utf-8" },
+  });
+};
+```
 
 ## Requirements
 

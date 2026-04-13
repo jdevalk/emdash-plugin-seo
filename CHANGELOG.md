@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-04-13
+
+### Added
+
+- **Schema map (experimental).** New public plugin route `schema/map` returning the list of every published URL backed by schema markup (`{ items: [{ url, collection, updatedAt }] }`). Wire it to `/schemamap.xml` at your site root with the Astro snippet in the README so agents and crawlers can enumerate structured-data URLs without scraping HTML. Per-URL schema endpoints (`/schema/<slug>.json`) are deferred pending an upstream helper for building page contexts from plugin routes.
+
 ## [0.6.0] - 2026-04-13
 
 ### Added
