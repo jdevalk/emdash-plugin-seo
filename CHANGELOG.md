@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- **`llms.txt` and schema map now actually enumerate content.** Switched both loops from reading `item.data.slug` / `item.data.status` / `item.data.locale` (which core strips) to the top-level `ContentItem` fields added in [emdash-cms/emdash#536](https://github.com/emdash-cms/emdash/pull/536) (slug, status, publishedAt) and [#539](https://github.com/emdash-cms/emdash/pull/539) (locale). Also adopted the new `where: { status: "published" }` filter from [#540](https://github.com/emdash-cms/emdash/pull/540) so narrowing happens at the SQL layer instead of in userland. All three PRs merged upstream; the plugin carries transient type casts against the currently-published emdash types until the new version hits npm.
+- **Fuzzy Redirects candidate list is no longer empty.** Depends on schema map — fixed for free by the change above. The other half of the feature (the 404 log capturing `/404` instead of the original requested URL) is still blocked on [emdash-cms/emdash#525](https://github.com/emdash-cms/emdash/discussions/525).
+
 ## [0.9.0] - 2026-04-13
 
 ### Added

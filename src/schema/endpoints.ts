@@ -52,14 +52,23 @@ export async function listSchemaEntries(ctx: PluginContext): Promise<SchemaMapEn
 
     let cursor: string | undefined;
     do {
-      const page = await ctx.content.list(collection.slug, { limit: 100, cursor });
-      for (const item of page.items) {
-        const data = item.data as Record<string, unknown>;
-        if (data.status !== "published") continue;
-        const slug = typeof data.slug === "string" ? data.slug : null;
-        if (!slug) continue;
-        const locale =
-          typeof data.locale === "string" && data.locale ? data.locale : cfg.defaultLocale;
+      // TODO: drop the cast once emdash publishes a release containing
+      // emdash-cms/emdash#540 (`where` filter) + emdash-cms/emdash#539
+      // (`locale` on ContentItem, alongside the slug/status/publishedAt
+      // already landed in #536).
+      const page = await ctx.content.list(collection.slug, {
+        limit: 100,
+        cursor,
+        where: { status: "published" },
+      } as Parameters<typeof ctx.content.list>[1]);
+      for (const rawItem of page.items) {
+        const item = rawItem as typeof rawItem & {
+          slug: string | null;
+          locale: string | null;
+        };
+        if (!item.slug) continue;
+        const slug = item.slug;
+        const locale = item.locale || cfg.defaultLocale;
 
         const url = buildPageUrl({
           locale,

@@ -25,7 +25,16 @@ vi.mock("emdash/runtime", () => ({
   getDb: async () => ({}),
 }));
 
-type Item = { id: string; type: string; data: Record<string, unknown>; createdAt: string; updatedAt: string };
+type Item = {
+  id: string;
+  type: string;
+  slug: string | null;
+  status: string;
+  locale: string | null;
+  data: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+};
 
 function makeCtx(items: Record<string, Item[]>): PluginContext {
   const store = new Map<string, unknown>();
@@ -44,11 +53,12 @@ function makeCtx(items: Record<string, Item[]>): PluginContext {
   };
   const content = {
     get: async () => null,
-    list: async (collection: string) => ({
-      items: items[collection] ?? [],
-      cursor: undefined,
-      hasMore: false,
-    }),
+    list: async (collection: string, opts?: { where?: { status?: string; locale?: string } }) => {
+      let all = items[collection] ?? [];
+      if (opts?.where?.status) all = all.filter((i) => i.status === opts.where!.status);
+      if (opts?.where?.locale) all = all.filter((i) => i.locale === opts.where!.locale);
+      return { items: all, cursor: undefined, hasMore: false };
+    },
   };
   return {
     plugin: { id: "seo", version: "0" },
@@ -139,14 +149,20 @@ describe("generateLlmsTxt", () => {
         {
           id: "1",
           type: "blog",
-          data: { slug: "hello", title: "Hello", status: "published", description: "Intro" },
+          slug: "hello",
+          status: "published",
+          locale: "en",
+          data: { title: "Hello", description: "Intro" },
           createdAt: "",
           updatedAt: "",
         },
         {
           id: "2",
           type: "blog",
-          data: { slug: "draft", title: "Draft", status: "draft" },
+          slug: "draft",
+          status: "draft",
+          locale: "en",
+          data: { title: "Draft" },
           createdAt: "",
           updatedAt: "",
         },
@@ -155,7 +171,10 @@ describe("generateLlmsTxt", () => {
         {
           id: "3",
           type: "pages",
-          data: { slug: "about", title: "About", status: "published" },
+          slug: "about",
+          status: "published",
+          locale: "en",
+          data: { title: "About" },
           createdAt: "",
           updatedAt: "",
         },

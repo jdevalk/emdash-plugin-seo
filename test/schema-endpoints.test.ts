@@ -28,6 +28,9 @@ vi.mock("emdash/runtime", () => ({
 type Item = {
   id: string;
   type: string;
+  slug: string | null;
+  status: string;
+  locale: string | null;
   data: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
@@ -50,11 +53,12 @@ function makeCtx(items: Record<string, Item[]>): PluginContext {
   };
   const content = {
     get: async () => null,
-    list: async (collection: string) => ({
-      items: items[collection] ?? [],
-      cursor: undefined,
-      hasMore: false,
-    }),
+    list: async (collection: string, opts?: { where?: { status?: string; locale?: string } }) => {
+      let all = items[collection] ?? [];
+      if (opts?.where?.status) all = all.filter((i) => i.status === opts.where!.status);
+      if (opts?.where?.locale) all = all.filter((i) => i.locale === opts.where!.locale);
+      return { items: all, cursor: undefined, hasMore: false };
+    },
   };
   return {
     plugin: { id: "seo", version: "0" },
@@ -86,14 +90,20 @@ describe("listSchemaEntries", () => {
         {
           id: "1",
           type: "content",
-          data: { status: "published", slug: "hello" },
+          slug: "hello",
+          status: "published",
+          locale: "en",
+          data: {},
           createdAt: "2026-01-01T00:00:00Z",
           updatedAt: "2026-02-01T00:00:00Z",
         },
         {
           id: "2",
           type: "content",
-          data: { status: "draft", slug: "wip" },
+          slug: "wip",
+          status: "draft",
+          locale: "en",
+          data: {},
           createdAt: "2026-01-02T00:00:00Z",
           updatedAt: "2026-01-02T00:00:00Z",
         },
@@ -102,7 +112,10 @@ describe("listSchemaEntries", () => {
         {
           id: "3",
           type: "content",
-          data: { status: "published", slug: "about" },
+          slug: "about",
+          status: "published",
+          locale: "en",
+          data: {},
           createdAt: "2026-01-03T00:00:00Z",
           updatedAt: "2026-01-03T00:00:00Z",
         },
@@ -135,7 +148,10 @@ describe("listSchemaEntries", () => {
         {
           id: "1",
           type: "content",
-          data: { status: "published", slug: "secret" },
+          slug: "secret",
+          status: "published",
+          locale: "en",
+          data: {},
           createdAt: "2026-01-01T00:00:00Z",
           updatedAt: "2026-01-01T00:00:00Z",
         },
@@ -144,7 +160,10 @@ describe("listSchemaEntries", () => {
         {
           id: "2",
           type: "content",
-          data: { status: "published", slug: "post" },
+          slug: "post",
+          status: "published",
+          locale: "en",
+          data: {},
           createdAt: "2026-01-02T00:00:00Z",
           updatedAt: "2026-01-02T00:00:00Z",
         },
@@ -164,7 +183,10 @@ describe("listSchemaEntries", () => {
         {
           id: "1",
           type: "content",
-          data: { status: "published" },
+          slug: null,
+          status: "published",
+          locale: "en",
+          data: {},
           createdAt: "2026-01-01T00:00:00Z",
           updatedAt: "2026-01-01T00:00:00Z",
         },
@@ -180,7 +202,10 @@ describe("listSchemaEntries", () => {
         {
           id: "1",
           type: "content",
-          data: { status: "published", slug: "hello" },
+          slug: "hello",
+          status: "published",
+          locale: "en",
+          data: {},
           createdAt: "2026-03-01T00:00:00Z",
           updatedAt: "" as unknown as string,
         },
