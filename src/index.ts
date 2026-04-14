@@ -12,7 +12,7 @@ import { listSchemaEntries } from "./schema/endpoints.js";
 export function seoPlugin(): PluginDescriptor {
   return {
     id: "seo",
-    version: "0.9.0",
+    version: "0.10.0",
     format: "native",
     entrypoint: new URL("./index.ts", import.meta.url).pathname,
     adminEntry: new URL("./admin.tsx", import.meta.url).pathname,
@@ -27,7 +27,7 @@ export function seoPlugin(): PluginDescriptor {
 export function createPlugin() {
   return definePlugin({
     id: "seo",
-    version: "0.9.0",
+    version: "0.10.0",
     capabilities: ["read:content", "page:inject", "network:fetch"],
     allowedHosts: ["api.indexnow.org"],
 

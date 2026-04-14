@@ -9,13 +9,9 @@
 
 An SEO plugin for [EmDash CMS](https://github.com/emdash-cms/emdash) that generates meta tags, Open Graph, Twitter Cards, canonical URLs, robots directives, and JSON-LD schema markup via the `page:metadata` hook.
 
-> ## ⚠️ Requires an unreleased EmDash version
+> **Requires `emdash@^0.5.0`.** Earlier EmDash versions are missing the `ContentItem.slug`/`status`/`locale` fields and the `where` filter on `ContentListOptions` that `llms.txt`, schema map, and Fuzzy Redirects rely on.
 >
-> The `main` branch now depends on upstream plugin-contract additions that are merged but not yet published to npm ([emdash-cms/emdash#536](https://github.com/emdash-cms/emdash/pull/536), [#539](https://github.com/emdash-cms/emdash/pull/539), [#540](https://github.com/emdash-cms/emdash/pull/540) — `slug`/`status`/`locale` on `ContentItem` and a `where` filter on `ContentListOptions`). Against the current npm-published EmDash, the content-enumeration features (`llms.txt`, schema map, Fuzzy Redirects) will still return empty; the `page:metadata`-based features (meta tags, Open Graph, canonical, robots, schema graph, hreflang, IndexNow) are unaffected and work regardless.
->
-> **Fuzzy Redirects** also depends on [emdash-cms/emdash#525](https://github.com/emdash-cms/emdash/discussions/525) (the 404 log currently captures `/404` rather than the original requested URL) before it becomes fully useful.
->
-> This notice will be removed once a matching EmDash release ships to npm.
+> **Fuzzy Redirects** suggestions work, but automatic source-path capture on 404s is still tracked in [emdash-cms/emdash#525](https://github.com/emdash-cms/emdash/discussions/525) — until that lands, you'll see the `/404` path in the log rather than the original requested URL.
 
 ## Features
 

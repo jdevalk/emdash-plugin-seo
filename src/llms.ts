@@ -111,24 +111,16 @@ export async function generateLlmsTxt(ctx: PluginContext): Promise<string | null
     const entries: LlmsTxtEntry[] = [];
     let cursor: string | undefined;
     do {
-      // TODO: drop the cast once emdash publishes a release containing
-      // emdash-cms/emdash#540 (`where` filter) + emdash-cms/emdash#539
-      // (`locale` on ContentItem, alongside the slug/status/publishedAt
-      // already landed in #536).
       const page = await ctx.content.list(collection.slug, {
         limit: 100,
         cursor,
         where: { status: "published" },
-      } as Parameters<typeof ctx.content.list>[1]);
-      for (const rawItem of page.items) {
-        const item = rawItem as typeof rawItem & {
-          slug: string | null;
-          locale: string | null;
-        };
-        const data = item.data as Record<string, unknown>;
+      });
+      for (const item of page.items) {
         if (!item.slug) continue;
         const slug = item.slug;
         const locale = item.locale || cfg.defaultLocale;
+        const data = item.data as Record<string, unknown>;
 
         const url = buildPageUrl({
           locale,
