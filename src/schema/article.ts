@@ -19,6 +19,8 @@ export function buildArticle(
   locale: string,
   ids: IdFactory,
   blogId: string | null,
+  keywords?: string[],
+  articleSection?: string,
 ): Record<string, unknown> | null {
   const pageUrl = canonical || page.url;
 
@@ -58,6 +60,8 @@ export function buildArticle(
       copyrightHolder,
       copyrightYear: settings.copyrightYear || undefined,
       license: settings.licenseUrl || undefined,
+      keywords: keywords?.length ? keywords.join(", ") : undefined,
+      articleSection: articleSection || undefined,
     },
     ids,
     "BlogPosting",

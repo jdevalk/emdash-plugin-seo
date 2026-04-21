@@ -7,6 +7,7 @@ import { generateCanonical } from "./canonical.js";
 import { generateOpengraph } from "./opengraph.js";
 import { generateHreflang } from "./hreflang.js";
 import { buildSchemaGraph } from "./schema/index.js";
+import { fetchPageTerms } from "./terms.js";
 
 /**
  * Main page:metadata hook handler.
@@ -58,8 +59,10 @@ export async function metadataHandler(
   contributions.push(...ogContributions);
 
   // 7. JSON-LD Schema graph (replaces base "primary" JSON-LD)
+  const { keywords, articleSection } = await fetchPageTerms(page);
   const schema = buildSchemaGraph(
     page, settings, siteUrl, siteName, canonical, ogTitle, description, locale,
+    keywords, articleSection,
   );
   if (schema) {
     contributions.push({ kind: "jsonld", id: "primary", graph: schema });

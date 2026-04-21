@@ -37,6 +37,8 @@ export function buildSchemaGraph(
   ogTitle: string,
   description: string | null,
   locale: string,
+  keywords?: string[],
+  articleSection?: string,
 ): Record<string, unknown> | null {
   // No schema for 404 pages
   if (page.path === "/404") return null;
@@ -148,6 +150,8 @@ export function buildSchemaGraph(
       locale,
       ids,
       blogId,
+      keywords,
+      articleSection,
     );
     if (article) pieces.push(article as GraphEntity);
 

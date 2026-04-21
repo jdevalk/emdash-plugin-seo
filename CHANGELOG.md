@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-04-21
+
+### Changed
+
+- **`peerDependencies.emdash` bumped to `^0.6.0`.** Picks up eager taxonomy-term hydration on `getEmDashEntry` results (emdash PR #626), plus the toolbar portableText fix (#685) and several cold-start / D1 replica performance improvements.
+
+### Added
+
+- **Taxonomy keywords and section in Article schema.** For content pages the plugin now calls `getEmDashEntry` to read the entry's eagerly-hydrated `data.terms` map (zero extra DB queries when the Astro template already fetched the entry in the same request). All assigned taxonomy terms are joined into the `keywords` field of the `BlogPosting` node. Terms from any taxonomy whose name starts with `categor` are additionally mapped to `articleSection`.
+
 ## [0.10.0] - 2026-04-14
 
 ### Changed

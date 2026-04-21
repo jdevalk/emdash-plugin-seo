@@ -72,9 +72,8 @@ function humanize(slug: string): string {
  *
  * Returns `null` when the feature is disabled. Collections without a
  * `urlPattern` are skipped (no public URL to link to). Within each
- * collection we paginate through `ctx.content.list` and filter to
- * `status === "published"` client-side — `ContentListOptions` has no
- * status filter.
+ * collection we paginate through `ctx.content.list`, narrowing to
+ * `status === "published"` at the database layer via `where`.
  */
 export async function generateLlmsTxt(ctx: PluginContext): Promise<string | null> {
   if (!(await isLlmsTxtEnabled(ctx))) return null;
