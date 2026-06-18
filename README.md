@@ -34,7 +34,7 @@ An SEO plugin for [EmDash CMS](https://github.com/emdash-cms/emdash) that genera
 - **Schema map** *(experimental)* — exposes a list of every published URL backed by schema markup at the plugin's `schema/map` route, ready to be wired to a `/schemamap.xml` Astro endpoint for agent/crawler discovery
 - **Fuzzy Redirects** — admin tool that mines the core 404 log, ranks live URLs by path similarity (Levenshtein + token overlap + last-segment match), and lets you one-click create a 301 redirect for the best target. Catches moved slugs, typos in inbound links, and punctuation drift without having to write regex rules
 - **NLWeb `<link>` tag** — when the **NLWeb endpoint URL** setting is set, every rendered page carries `<link rel="nlweb" href="…">` advertising the site's conversational endpoint for agent discovery. Requires EmDash with [emdash-cms/emdash#523](https://github.com/emdash-cms/emdash/pull/523) merged; older versions drop the contribution silently
-- **IndexNow** — on publish/unpublish transitions, submits the affected URL to [IndexNow](https://www.indexnow.org) so Bing, Yandex, Seznam, Naver, and Yep recrawl immediately. Opt-in via a single toggle in the settings UI; the key is generated and persisted automatically on first use
+- **IndexNow** — on publish, on edits to an already-published page, on unpublish, and on permanent delete, submits the affected URL to [IndexNow](https://www.indexnow.org) so Bing, Yandex, Seznam, Naver, and Yep recrawl immediately. Opt-in via a single toggle in the settings UI; the key is generated and persisted automatically on first use
 - **Admin settings UI** — auto-generated from `settingsSchema` for configuring Person/Organization identity, social profiles, title separator, and default description
 
 ## Installation
@@ -129,9 +129,21 @@ URLs become `/fr-ca/…` and `/fr-fr/…`, and the emitted `hreflang` attributes
 ## IndexNow
 
 When enabled via the **IndexNow submission** setting, the plugin submits
-the canonical URL of any content item that transitions to or from
-published. A 32-character hex key is minted on first use and persisted in
-plugin KV.
+the canonical URL of a content item whenever it changes in a way search
+engines should re-crawl:
+
+- **Published, or edited while published** (`content:afterPublish` +
+  `content:afterSave`) — so both first publish and later edits to a live
+  page are picked up. A per-URL 60-second debounce collapses the duplicate
+  these two fire at the publish moment and absorbs autosave bursts.
+- **Unpublished** (`content:afterUnpublish`) — pings the now-dead URL so
+  engines see the 404/410.
+- **Permanently deleted** (`content:afterDelete`, only when the delete is
+  permanent rather than a trash) — the delete event carries no slug, so
+  published saves cache an `id → url` mapping in plugin KV that the delete
+  handler resolves, submits, and then clears.
+
+A 32-character hex key is minted on first use and persisted in plugin KV.
 
 The front-end Astro site must serve the key-verification file at
 `/<key>.txt`. Fetch the key from the plugin's `indexnow/key` route and

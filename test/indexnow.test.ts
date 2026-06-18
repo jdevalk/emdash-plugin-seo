@@ -3,6 +3,8 @@ import type { PluginContext } from "emdash";
 
 import {
   getOrCreateIndexNowKey,
+  handleIndexNowDelete,
+  handleIndexNowPublished,
   handleIndexNowTransition,
   isIndexNowEnabled,
 } from "../src/indexnow.js";
@@ -161,5 +163,113 @@ describe("handleIndexNowTransition", () => {
       ),
     ).resolves.toBeUndefined();
     expect((ctx.log.warn as ReturnType<typeof vi.fn>)).toHaveBeenCalled();
+  });
+});
+
+describe("handleIndexNowPublished", () => {
+  const fetchSpy = vi.fn(
+    async (_url: string, _init?: RequestInit) => new Response("", { status: 200 }),
+  );
+
+  beforeEach(() => {
+    fetchSpy.mockClear();
+    vi.stubGlobal("fetch", fetchSpy);
+  });
+
+  const published = { content: { id: "1", slug: "hello", status: "published" }, collection: "blog" };
+
+  it("does nothing when disabled", async () => {
+    const ctx = makeCtx();
+    await handleIndexNowPublished(published, ctx);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when status is not published", async () => {
+    const ctx = makeCtx();
+    await ctx.kv.set("settings:indexnowEnabled", "true");
+    await handleIndexNowPublished(
+      { content: { id: "1", slug: "hello", status: "draft" }, collection: "blog" },
+      ctx,
+    );
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("submits and caches the id→url mapping when published & enabled", async () => {
+    const ctx = makeCtx();
+    await ctx.kv.set("settings:indexnowEnabled", "true");
+    await handleIndexNowPublished(published, ctx);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(await ctx.kv.get("indexnow:urlmap:blog:1")).toBe(
+      "https://example.com/blog/hello/",
+    );
+  });
+
+  it("debounces a second save of the same URL within the window", async () => {
+    const ctx = makeCtx();
+    await ctx.kv.set("settings:indexnowEnabled", "true");
+    await handleIndexNowPublished(published, ctx);
+    await handleIndexNowPublished(published, ctx);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("pings again once the debounce window has elapsed", async () => {
+    const ctx = makeCtx();
+    await ctx.kv.set("settings:indexnowEnabled", "true");
+    // Pretend the last ping was two minutes ago.
+    await ctx.kv.set(
+      "indexnow:lastping:https://example.com/blog/hello/",
+      Date.now() - 120_000,
+    );
+    await handleIndexNowPublished(published, ctx);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("handleIndexNowDelete", () => {
+  const fetchSpy = vi.fn(
+    async (_url: string, _init?: RequestInit) => new Response("", { status: 200 }),
+  );
+
+  beforeEach(() => {
+    fetchSpy.mockClear();
+    vi.stubGlobal("fetch", fetchSpy);
+  });
+
+  it("does nothing for a trash (non-permanent) delete", async () => {
+    const ctx = makeCtx();
+    await ctx.kv.set("settings:indexnowEnabled", "true");
+    await ctx.kv.set("indexnow:urlmap:blog:1", "https://example.com/blog/hello/");
+    await handleIndexNowDelete({ id: "1", collection: "blog", permanent: false }, ctx);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("does nothing when disabled", async () => {
+    const ctx = makeCtx();
+    await ctx.kv.set("indexnow:urlmap:blog:1", "https://example.com/blog/hello/");
+    await handleIndexNowDelete({ id: "1", collection: "blog", permanent: true }, ctx);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("no-ops when the id has no cached URL", async () => {
+    const ctx = makeCtx();
+    await ctx.kv.set("settings:indexnowEnabled", "true");
+    await handleIndexNowDelete({ id: "99", collection: "blog", permanent: true }, ctx);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("submits the cached URL and clears the mapping on permanent delete", async () => {
+    const ctx = makeCtx();
+    await ctx.kv.set("settings:indexnowEnabled", "true");
+    await ctx.kv.set("indexnow:urlmap:blog:1", "https://example.com/blog/hello/");
+    await ctx.kv.set("indexnow:lastping:https://example.com/blog/hello/", Date.now());
+    await handleIndexNowDelete({ id: "1", collection: "blog", permanent: true }, ctx);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const init = fetchSpy.mock.calls[0][1] as RequestInit;
+    const body = JSON.parse(init.body as string);
+    expect(body.urlList).toEqual(["https://example.com/blog/hello/"]);
+    expect(await ctx.kv.get("indexnow:urlmap:blog:1")).toBeUndefined();
+    expect(
+      await ctx.kv.get("indexnow:lastping:https://example.com/blog/hello/"),
+    ).toBeUndefined();
   });
 });

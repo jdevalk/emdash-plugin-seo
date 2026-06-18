@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.12.0] - 2026-06-18
 
+### Added
+
+- **IndexNow now pings on edits to already-published pages.** The new `content:afterSave` hook fires on every save; the handler pings IndexNow whenever *published* content is saved. Previously only the draft→published transition (`content:afterPublish`) pinged, so editing a live page and re-saving never notified search engines. Both hooks route through the same handler; a per-URL debounce (60s, `PING_DEBOUNCE_MS`) collapses the duplicate the two fire at the publish moment and guards against autosave bursts.
+- **IndexNow now pings on permanent deletes.** The new `content:afterDelete` hook submits a permanently-deleted page's last-known URL to IndexNow so engines recrawl and see the 404/410. Because the delete event carries only `{ id, collection }` (no slug), published saves record an `id → url` mapping in plugin KV (`indexnow:urlmap:<collection>:<id>`) that the delete handler resolves and then clears. Trashing is treated as an unpublish and continues to flow through `content:afterUnpublish`.
+
 ### Changed
 
-- **`peerDependencies.emdash` bumped to `^0.21.0`.** Tracks the current EmDash release. The plugin API surface this plugin depends on — the `page:metadata`, `content:afterPublish`, and `content:afterUnpublish` hooks, plus the `read:content`, `page:inject`, and `network:fetch` capabilities — is unchanged from `0.6.0`, so no source changes were required. Verified against `emdash@0.21.0`: typecheck clean, all tests passing.
+- **`peerDependencies.emdash` bumped to `^0.21.0`.** Tracks the current EmDash release. The plugin API surface this plugin depends on — the `page:metadata`, `content:afterPublish`, and `content:afterUnpublish` hooks, plus the `read:content`, `page:inject`, and `network:fetch` capabilities — is unchanged from `0.6.0`, so the compatibility bump itself required no source changes. Verified against `emdash@0.21.0`: typecheck clean, all tests passing.
 - Internal plugin `version` strings in `src/index.ts` bumped to `0.12.0` to match the package version.
 
 ## [0.11.0] - 2026-04-21

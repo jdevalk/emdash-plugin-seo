@@ -4,6 +4,8 @@ import { metadataHandler } from "./metadata.js";
 import {
   getKeyFileBody,
   getOrCreateIndexNowKey,
+  handleIndexNowDelete,
+  handleIndexNowPublished,
   handleIndexNowTransition,
 } from "./indexnow.js";
 import { generateLlmsTxt } from "./llms.js";
@@ -37,11 +39,19 @@ export function createPlugin() {
         priority: 10,
       },
       "content:afterPublish": {
-        handler: handleIndexNowTransition,
+        handler: handleIndexNowPublished,
+        priority: 50,
+      },
+      "content:afterSave": {
+        handler: handleIndexNowPublished,
         priority: 50,
       },
       "content:afterUnpublish": {
         handler: handleIndexNowTransition,
+        priority: 50,
+      },
+      "content:afterDelete": {
+        handler: handleIndexNowDelete,
         priority: 50,
       },
     },
