@@ -43,7 +43,7 @@ export async function metadataHandler(
   }
 
   // 5. Canonical
-  const canonical = generateCanonical(page, siteUrl);
+  const canonical = generateCanonical(page, siteUrl, ctx.site.trailingSlash);
   if (canonical) {
     contributions.push({ kind: "link", rel: "canonical", href: canonical });
   }
@@ -51,7 +51,7 @@ export async function metadataHandler(
   // 5b. hreflang alternates (multilingual content sites only)
   // Short-circuits internally when i18n is disabled — zero cost on
   // single-locale sites.
-  const hreflangContributions = await generateHreflang(page, ctx, siteUrl);
+  const hreflangContributions = await generateHreflang(page, ctx, siteUrl, ctx.site.trailingSlash);
   contributions.push(...hreflangContributions);
 
   // 6. Open Graph + Twitter

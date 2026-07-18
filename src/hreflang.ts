@@ -6,7 +6,7 @@ import type {
   PublicPageContext,
 } from "emdash";
 
-import { buildPageUrl } from "./urls.js";
+import { buildPageUrl, type TrailingSlash } from "./urls.js";
 
 /**
  * Thin EmDash adapter around `@jdevalk/astro-seo-graph`'s
@@ -30,6 +30,7 @@ export async function generateHreflang(
 	page: PublicPageContext,
 	ctx: PluginContext,
 	siteUrl: string,
+	trailingSlash?: TrailingSlash,
 ): Promise<PageMetadataContribution[]> {
 	// Dynamically import emdash to keep this module testable via
 	// `vi.mock("emdash", ...)` — the alternative is top-level imports
@@ -82,6 +83,7 @@ export async function generateHreflang(
 			siteUrl,
 			cfg,
 			urlPattern,
+			trailingSlash,
 		});
 		if (href === null) continue;
 

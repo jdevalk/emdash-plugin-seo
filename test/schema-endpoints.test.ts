@@ -36,7 +36,10 @@ type Item = {
   updatedAt: string;
 };
 
-function makeCtx(items: Record<string, Item[]>): PluginContext {
+function makeCtx(
+  items: Record<string, Item[]>,
+  trailingSlash?: "always" | "never" | "ignore",
+): PluginContext {
   const store = new Map<string, unknown>();
   const kv = {
     get: async (k: string) => store.get(k),
@@ -65,7 +68,12 @@ function makeCtx(items: Record<string, Item[]>): PluginContext {
     kv,
     content,
     log: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-    site: { name: "Example", url: "https://example.com", locale: "en" },
+    site: {
+      name: "Example",
+      url: "https://example.com",
+      locale: "en",
+      ...(trailingSlash ? { trailingSlash } : {}),
+    },
     url: (p: string) => `https://example.com${p}`,
   } as unknown as PluginContext;
 }
@@ -135,6 +143,50 @@ describe("listSchemaEntries", () => {
         collection: "pages",
         updatedAt: "2026-01-03T00:00:00Z",
       },
+    ]);
+  });
+
+  it("emits bare URLs (no trailing slash) when the site's trailingSlash is 'never'", async () => {
+    mockState.collections = [
+      { slug: "blog", label: "Blog", urlPattern: "/blog/{slug}" },
+      { slug: "pages", label: "Pages", urlPattern: "/{slug}" },
+    ];
+    const ctx = makeCtx(
+      {
+        blog: [
+          {
+            id: "1",
+            type: "content",
+            slug: "hello",
+            status: "published",
+            locale: "en",
+            data: {},
+            createdAt: "2026-01-01T00:00:00Z",
+            updatedAt: "2026-02-01T00:00:00Z",
+          },
+        ],
+        pages: [
+          {
+            id: "3",
+            type: "content",
+            slug: "about",
+            status: "published",
+            locale: "en",
+            data: {},
+            createdAt: "2026-01-03T00:00:00Z",
+            updatedAt: "2026-01-03T00:00:00Z",
+          },
+        ],
+      },
+      "never",
+    );
+
+    const result = await listSchemaEntries(ctx);
+
+    // The sitemap advertises bare URLs, matching a headless front-end that serves them.
+    expect(result.map((r) => r.url)).toEqual([
+      "https://example.com/blog/hello",
+      "https://example.com/about",
     ]);
   });
 
