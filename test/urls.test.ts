@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { I18nConfig } from "emdash";
 
-import { buildPageUrl } from "../src/urls.js";
+import { applyTrailingSlash, buildPageUrl } from "../src/urls.js";
 
 const SITE = "https://example.com";
 
@@ -176,5 +176,78 @@ describe("buildPageUrl", () => {
         }),
       ).toBe("https://example.com/fr-ca/bonjour/");
     });
+  });
+
+  describe("trailingSlash policy", () => {
+    it('strips the trailing slash when trailingSlash is "never"', () => {
+      expect(
+        buildPageUrl({
+          locale: "en",
+          slug: "hello",
+          siteUrl: SITE,
+          cfg: CFG_NO_PREFIX_DEFAULT,
+          urlPattern: "/{slug}",
+          trailingSlash: "never",
+        }),
+      ).toBe("https://example.com/hello");
+    });
+
+    it('keeps the trailing slash when trailingSlash is "always"', () => {
+      expect(
+        buildPageUrl({
+          locale: "en",
+          slug: "hello",
+          siteUrl: SITE,
+          cfg: CFG_NO_PREFIX_DEFAULT,
+          urlPattern: "/{slug}",
+          trailingSlash: "always",
+        }),
+      ).toBe("https://example.com/hello/");
+    });
+
+    it('keeps the trailing slash when trailingSlash is "ignore" (backward-compatible default)', () => {
+      expect(
+        buildPageUrl({
+          locale: "en",
+          slug: "hello",
+          siteUrl: SITE,
+          cfg: CFG_NO_PREFIX_DEFAULT,
+          urlPattern: "/{slug}",
+          trailingSlash: "ignore",
+        }),
+      ).toBe("https://example.com/hello/");
+    });
+
+    it('strips the slash on multi-segment, locale-prefixed URLs when "never"', () => {
+      expect(
+        buildPageUrl({
+          locale: "fr",
+          slug: "bonjour",
+          siteUrl: SITE,
+          cfg: CFG_NO_PREFIX_DEFAULT,
+          urlPattern: "/blog/{slug}",
+          trailingSlash: "never",
+        }),
+      ).toBe("https://example.com/fr/blog/bonjour");
+    });
+  });
+});
+
+describe("applyTrailingSlash", () => {
+  it('adds a trailing slash by default (undefined) and for "always"/"ignore"', () => {
+    expect(applyTrailingSlash("/blog/post", undefined)).toBe("/blog/post/");
+    expect(applyTrailingSlash("/blog/post", "always")).toBe("/blog/post/");
+    expect(applyTrailingSlash("/blog/post", "ignore")).toBe("/blog/post/");
+  });
+
+  it('strips trailing slashes for "never"', () => {
+    expect(applyTrailingSlash("/blog/post/", "never")).toBe("/blog/post");
+    expect(applyTrailingSlash("/blog/post", "never")).toBe("/blog/post");
+  });
+
+  it('keeps the site root as "/" under every policy', () => {
+    expect(applyTrailingSlash("/", "never")).toBe("/");
+    expect(applyTrailingSlash("/", "always")).toBe("/");
+    expect(applyTrailingSlash("/", undefined)).toBe("/");
   });
 });

@@ -127,6 +127,7 @@ export async function generateLlmsTxt(ctx: PluginContext): Promise<string | null
           siteUrl,
           cfg,
           urlPattern: collection.urlPattern,
+          trailingSlash: ctx.site.trailingSlash,
         });
         if (!url) continue;
 

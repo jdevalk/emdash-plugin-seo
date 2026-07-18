@@ -5,7 +5,7 @@ import {
   validateIndexNowKey,
 } from "@jdevalk/seo-graph-core";
 import type { PluginContext } from "emdash";
-import { buildPageUrl } from "./urls.js";
+import { buildPageUrl, type TrailingSlash } from "./urls.js";
 
 const KEY_KV = "indexnow:key";
 const ENABLED_KV = "settings:indexnowEnabled";
@@ -74,6 +74,7 @@ async function urlForContent(
   content: Record<string, unknown>,
   collection: string,
   siteUrl: string,
+  trailingSlash?: TrailingSlash,
 ): Promise<string | null> {
   const slug = typeof content.slug === "string" ? content.slug : null;
   if (!slug) return null;
@@ -109,6 +110,7 @@ async function urlForContent(
     siteUrl,
     cfg,
     urlPattern: info.urlPattern,
+    trailingSlash,
   });
 }
 
@@ -165,7 +167,12 @@ export async function handleIndexNowTransition(
     const siteUrl = ctx.site.url;
     if (!siteUrl) return;
 
-    const url = await urlForContent(event.content, event.collection, siteUrl);
+    const url = await urlForContent(
+      event.content,
+      event.collection,
+      siteUrl,
+      ctx.site.trailingSlash,
+    );
     if (!url) return;
 
     await submitUrlToIndexNow(ctx, url);
@@ -204,7 +211,12 @@ export async function handleIndexNowPublished(
     const siteUrl = ctx.site.url;
     if (!siteUrl) return;
 
-    const url = await urlForContent(event.content, event.collection, siteUrl);
+    const url = await urlForContent(
+      event.content,
+      event.collection,
+      siteUrl,
+      ctx.site.trailingSlash,
+    );
     if (!url) return;
 
     // Remember where this id lives so afterDelete can ping the dead URL.

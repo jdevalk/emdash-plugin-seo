@@ -68,6 +68,7 @@ export async function listSchemaEntries(ctx: PluginContext): Promise<SchemaMapEn
           siteUrl,
           cfg,
           urlPattern: collection.urlPattern,
+          trailingSlash: ctx.site.trailingSlash,
         });
         if (!url) continue;
 

@@ -1,19 +1,23 @@
 import type { PublicPageContext } from "emdash";
+import { applyTrailingSlash, type TrailingSlash } from "./urls.js";
 
 const NOINDEX_PATHS = new Set(["/search"]);
 
 /**
  * Generate canonical URL.
- * 
+ *
  * - Every indexable page gets one
  * - Omit on 404 and noindex pages
- * - Absolute, clean, with trailing slash
+ * - Absolute, clean, with the site's trailing-slash policy (`trailingSlash`,
+ *   from Astro's config — shared with `buildPageUrl` so canonical and
+ *   hreflang/sitemap URLs stay identical)
  * - Respect user override
  * - Include pagination parameter
  */
 export function generateCanonical(
   page: PublicPageContext,
   siteUrl: string,
+  trailingSlash?: TrailingSlash,
 ): string | null {
   const path = page.path || "/";
 
@@ -30,8 +34,8 @@ export function generateCanonical(
     const u = new URL(page.url, siteUrl);
     let pathname = u.pathname.toLowerCase().replace(/\/+/g, "/");
 
-    // Ensure trailing slash
-    if (!pathname.endsWith("/")) pathname += "/";
+    // Apply the site's trailing-slash policy (default: keep a trailing slash).
+    pathname = applyTrailingSlash(pathname, trailingSlash);
 
     // Build clean URL with only pagination param
     const pageParam = u.searchParams.get("page");
