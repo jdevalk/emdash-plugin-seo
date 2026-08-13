@@ -1,4 +1,4 @@
-import { definePlugin } from "emdash";
+import { definePlugin, PluginRouteError } from "emdash";
 import type { PluginDescriptor, RouteContext } from "emdash";
 import { metadataHandler } from "./metadata.js";
 import {
@@ -24,6 +24,12 @@ export function seoPlugin(): PluginDescriptor {
     ],
     options: {},
   };
+}
+
+function requireGet(ctx: RouteContext): void {
+  if (ctx.request.method !== "GET") {
+    throw new PluginRouteError("METHOD_NOT_ALLOWED", "Method not allowed", 405);
+  }
 }
 
 export function createPlugin() {
@@ -78,13 +84,20 @@ export function createPlugin() {
         },
       },
       "indexnow/key": {
+        // The key file is public ownership proof, not a secret. Sites proxy this
+        // read-only route to /<key>.txt for IndexNow to verify anonymously.
+        public: true,
         handler: async (ctx: RouteContext) => {
+          requireGet(ctx);
           const key = await getOrCreateIndexNowKey(ctx);
           return { key, keyFile: await getKeyFileBody(ctx) };
         },
       },
       "llms/txt": {
+        // llms.txt is a published index intended for anonymous crawlers.
+        public: true,
         handler: async (ctx: RouteContext) => {
+          requireGet(ctx);
           const body = await generateLlmsTxt(ctx);
           return { enabled: body !== null, body: body ?? "" };
         },
