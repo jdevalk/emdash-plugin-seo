@@ -84,6 +84,10 @@ export function createPlugin() {
         },
       },
       "llms/txt": {
+        // The README tells site owners to expose /llms.txt and have agents fetch it
+        // anonymously, but without `public: true` the route answers 401, so the
+        // documented anonymous fetch fails. `schema/map` below is already public the same way.
+        public: true,
         handler: async (ctx: RouteContext) => {
           const body = await generateLlmsTxt(ctx);
           return { enabled: body !== null, body: body ?? "" };
